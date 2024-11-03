@@ -3,3 +3,8 @@ cmake_install.cmake
 Makefile
 CMakeFiles/
 CTorch
+_deps/
+lib/
+CTestTestfile.cmake
+tensorTests
+googletest/
