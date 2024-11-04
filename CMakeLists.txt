@@ -8,11 +8,13 @@ include_directories(src)
 
 set(SOURCES
     main.cpp
+    src/array.cpp
     src/linear.cpp
     src/tensor.cpp
 )
 
 set(HEADERS
+    src/array.h
     src/linear.h
     src/tensor.h
 )
