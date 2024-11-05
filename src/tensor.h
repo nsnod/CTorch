@@ -3,12 +3,16 @@
 template <typename T>
 
 class Tensor{
-    // tensor will take a shape
-    // type of objects in tensor
-    // default values
-    Tensor(){
-    
-    }
+private:
+    std::vector<T> data;
+    std::vector<T> stride_;
+    int64_t dims_;
+    std::vector<T> shape_;
+    int totalSize_;
+    T type_;
+
+public:
+    Tensor(std::vector<T> shape, T dataType, int elements, std::vector<T> stride) : shape(shape_) , dataType(type_), elements(totalSize_), stride(stride_) {};
     
     // Functions  
     // adding
@@ -56,7 +60,7 @@ class Tensor{
         }
     }
     // requires matrix multplication
-    T Tensor(T arr1[][], T arr2[][])
+    T matmul(T arr1[][], T arr2[][])
     {
         for (i = 0; i < arr.size(); i++)
         {
