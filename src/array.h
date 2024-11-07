@@ -17,9 +17,10 @@ public:
     // Setter
     void setDim(int dim) { dimension = dim; }
     void setSize(int s) { size = s; }
+    void setData(int index, T value) { data[index] = value; }
 
     // Constructor
-    Array(vector<T>& data, vector<int>& shape) : data(data), shape(shape) {
+    Array(vector<int>& shape) : shape(shape) {
         setDim(shape.size());
         setSize(data.size());
         calcStrides(strides, shape, dimension);
@@ -31,9 +32,17 @@ public:
     // Functions
     void zeroTensor();
     void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
-    int flatIndex(const vector<int>& indices) const;
+    int flatIndex(const vector<int> indices) const;
+    void randomize(float upper, float lower);
     
     // Getter
+    int getDim() { return dimension; }
+    int getSize() { return size; }
+    vector<int> getShape() { return shape; }
+    vector<int> getStrides() { return strides; }
+    vector<T> getData() { return data; }
+    void print();
+
     T& at(const vector<int>& indices);
 
     //transpose functionality (inverting shape)
