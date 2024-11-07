@@ -20,16 +20,21 @@ public:
     void setDim(int dim) { dimension = dim; }
     void setSize(int s) { size = s; }
     void setData(int index, T value) { data[index] = value; }
+    void setShape(vector<int> s) { shape = s; }
 
     // Constructor
     Array(const vector<int>& shape) : shape(shape) {
         setDim(shape.size());
+
         int size = 1;
         for (int i = 0; i < getDim(); i++) {
-            size *= shape[i];
+            size *= shape[i]; 
         }
+
         setSize(size);
+
         data.resize(getSize());
+
         for (int i = 0; i < size; i++) {
             setData(i, 0);
         }
@@ -45,6 +50,7 @@ public:
     void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
     int flatIndex(const vector<int> indices) const;
     void randomize(float upper, float lower);
+    void transpose();
     
     // Getter
     int getDim() { return dimension; }
@@ -55,13 +61,24 @@ public:
 
     T& at(const vector<int>& indices);
 
-    //transpose functionality (inverting shape)
 };
 
 
 
 
-// FUNCTION IMPLEMENTATIONS HAVE TO STAY HERE BECAUSE OF TEMPLATE 
+// FUNCTION IMPLEMENTATIONS HAVE TO STAY HERE BECAUSE OF TEMPLATE
+template <typename T>
+void Array<T>::transpose() {
+    if (getShape().size() > 2) {
+        cout << "We only support 2d matrix transposing currently! Talk to the devs ;)" << endl;
+    } else {
+        vector<int> shaper = getShape();
+        setShape(shaper[1], shaper[0]);
+        calcStrides(getStrides(), getShape(), getDim());
+    }
+}
+
+
 template <typename T>
 void Array<T>::calcStrides(vector<int>& strides, vector<int> shape, int dimension) {
     strides.resize(dimension);
@@ -81,7 +98,6 @@ void Array<T>::randomize(float upper, float lower) {
     }
 }
 
-// work on
 template <typename T>
 void Array<T>::print() {
     vector<int> indices(getDim(), 0);
@@ -96,7 +112,6 @@ void Array<T>::print() {
 
         cout << at(indices);
 
-        // Update indices to traverse to the next element
         for (int d = getDim() - 1; d >= 0; d--) {
             indices[d]++;
             if (indices[d] < shape[d]) {
