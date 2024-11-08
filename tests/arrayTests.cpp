@@ -11,12 +11,19 @@ using namespace std;
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
-    Array<float> myArray({3, 3});
+    Array<float> myArray({1, 5});
 
     cout << myArray.getDim() << " " << myArray.getSize() << endl;
 
+
     myArray.randomize(-1.0, 2.0);
 
+    vector<float> testData = myArray.getData();
+
+    for (int i = 0; i < testData.size(); i++) {
+        cout << testData[i] << " ";
+    }
+    
     myArray.print();
 
 

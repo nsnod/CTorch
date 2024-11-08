@@ -49,12 +49,13 @@ public:
     void zeroTensor();
     void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
     int flatIndex(const vector<int> indices) const;
-    void randomize(float upper, float lower);
+    void randomize(float lower, float upper);
     void transpose();
     
     // Getter
     int getDim() { return dimension; }
     int getSize() { return size; }
+    vector<T> getData() { return data; }
     vector<int> getShape() { return shape; }
     vector<int> getStrides() { return strides; }
     void print();
@@ -73,7 +74,7 @@ void Array<T>::transpose() {
         cout << "We only support 2d matrix transposing currently! Talk to the devs ;)" << endl;
     } else {
         vector<int> shaper = getShape();
-        setShape(shaper[1], shaper[0]);
+        setShape({shaper[1], shaper[0]});
         calcStrides(getStrides(), getShape(), getDim());
     }
 }
@@ -89,7 +90,7 @@ void Array<T>::calcStrides(vector<int>& strides, vector<int> shape, int dimensio
 }
 
 template <typename T>
-void Array<T>::randomize(float upper, float lower) {
+void Array<T>::randomize(float lower, float upper) {
     random_device rd; 
     mt19937 gen(rd()); 
     uniform_real_distribution<float> dist(lower, upper); 
@@ -101,14 +102,13 @@ void Array<T>::randomize(float upper, float lower) {
 template <typename T>
 void Array<T>::print() {
     vector<int> indices(getDim(), 0);
-
+    //EVERYTHING PRINTS IN ORDER OF ACCESED ex: (0,0), (0,1) (1,0) (1,1) (2,0) (2,1).... EXCEPT FOR THE BRACKETS AND NEWLINES
     for (int i = 0; i < getSize(); i++) {
-        // bracket printing
-        for (int d = 0; d < getDim(); d++) {
-            if (indices[d] == 0) {
-                cout << "[";
-            }
-        }
+        // for (int d = 0; d < getDim(); d++) {
+        //     if (indices[d] == 0) {
+        //         cout << "[";
+        //     }
+        // }
 
         cout << at(indices);
 
@@ -118,7 +118,7 @@ void Array<T>::print() {
                 break;
             }
             indices[d] = 0; 
-            cout << "]";    
+            // cout << "]";    
         }
 
         if (i < getSize() - 1) {
@@ -126,9 +126,9 @@ void Array<T>::print() {
         }
     }
 
-    for (int d = 0; d < getDim(); d++) {
-        cout << "]";
-    }
+    // for (int d = 0; d < getDim(); d++) {
+    //     cout << "]";
+    // }
     cout << endl;
 }
 
