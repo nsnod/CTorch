@@ -23,9 +23,23 @@ class Tensor {
     // Functions 
 
     //no need for tensor zero. the array is inhertly 0.
-    Tensor random_tensor(float lower, float upper) {
+    void randomize_tensor(float lower, float upper) {
         data->randomize(lower, upper);
         grad->randomize(lower, upper);
+    }
+
+    void print_tensor() {
+        cout << "Tensor:" << endl;
+        cout << "data" << endl;
+        data->print();
+        cout << "shape" << endl;
+        cout << "(";
+        for (int i = 0; i < data->getDim(); i++) { 
+            cout << data->getShape()[i] << ", ";
+        }
+        cout << ")" << endl;
+        cout << "grad" << endl;
+        grad->print();
     }
 
     // // adding
