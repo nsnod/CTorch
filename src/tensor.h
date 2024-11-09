@@ -1,6 +1,6 @@
-#pragma once
+// #pragma once
 
-template <typename T>
+// #include "array.h"
 
 class Tensor{
 private:
