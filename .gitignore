@@ -8,3 +8,4 @@ lib/
 CTestTestfile.cmake
 tensorTests
 googletest/
+build/

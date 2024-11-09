@@ -8,7 +8,6 @@ include_directories(src)
 
 set(SOURCES
     main.cpp
-    src/array.cpp
     src/linear.cpp
     src/tensor.cpp
 )
@@ -35,8 +34,13 @@ if(BUILD_TESTING)
     FetchContent_MakeAvailable(googletest)
 
     add_executable(tensorTests tests/tensorTests.cpp)
+    add_executable(arrayTests tests/arrayTests.cpp)
 
     target_link_libraries(tensorTests gtest gtest_main)
+    target_link_libraries(arrayTests gtest gtest_main)
+
 
     add_test(NAME TensorTests COMMAND tensorTests)
+    add_test(NAME ArrayTests COMMAND arrayTest)
+
 endif()
