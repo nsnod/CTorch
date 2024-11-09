@@ -6,16 +6,16 @@
 
 using namespace std;
 
-template <typename T>
+template <typename T = float>
 class Array {
-private:
+ private:
     vector<int> shape;
     vector<T> data;
     vector<int> strides;
     int dimension;
     int size;
 
-public:
+ public:
     // Setter
     void setDim(int dim) { dimension = dim; }
     void setSize(int s) { size = s; }
@@ -23,6 +23,7 @@ public:
     void setShape(vector<int> s) { shape = s; }
 
     // Constructor
+    Array();
     Array(const vector<int>& shape) : shape(shape) {
         setDim(shape.size());
 
@@ -46,7 +47,6 @@ public:
     ~Array() {}
 
     // Functions
-    void zeroTensor();
     void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
     int flatIndex(const vector<int> indices) const;
     void randomize(float lower, float upper);
