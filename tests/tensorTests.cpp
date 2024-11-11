@@ -12,6 +12,13 @@ TEST(ExampleTest, OneIsOne) {
 }
 
 int main(int argc, char **argv) {
+
+    Tensor<float> test({3,2});
+
+    test.randomize_tensor(-1, 1);
+
+    test.print_tensor();
+
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

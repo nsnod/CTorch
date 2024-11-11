@@ -6,16 +6,16 @@
 
 using namespace std;
 
-template <typename T>
+template <typename T = float>
 class Array {
-private:
+ private:
     vector<int> shape;
     vector<T> data;
     vector<int> strides;
     int dimension;
     int size;
 
-public:
+ public:
     // Setter
     void setDim(int dim) { dimension = dim; }
     void setSize(int s) { size = s; }
@@ -23,6 +23,7 @@ public:
     void setShape(vector<int> s) { shape = s; }
 
     // Constructor
+    Array();
     Array(const vector<int>& shape) : shape(shape) {
         setDim(shape.size());
 
@@ -46,7 +47,6 @@ public:
     ~Array() {}
 
     // Functions
-    void zeroTensor();
     void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
     int flatIndex(const vector<int> indices) const;
     void randomize(float lower, float upper);
@@ -101,35 +101,23 @@ void Array<T>::randomize(float lower, float upper) {
 
 template <typename T>
 void Array<T>::print() {
-    vector<int> indices(getDim(), 0);
-    //EVERYTHING PRINTS IN ORDER OF ACCESED ex: (0,0), (0,1) (1,0) (1,1) (2,0) (2,1).... EXCEPT FOR THE BRACKETS AND NEWLINES
-    for (int i = 0; i < getSize(); i++) {
-        // for (int d = 0; d < getDim(); d++) {
-        //     if (indices[d] == 0) {
-        //         cout << "[";
-        //     }
-        // }
+    vector<int> indices(getDim(), 0); 
 
-        cout << at(indices);
+    for (int i = 0; i < getSize(); i++) {
+        cout << at(indices) << " ";
 
         for (int d = getDim() - 1; d >= 0; d--) {
             indices[d]++;
             if (indices[d] < shape[d]) {
                 break;
             }
-            indices[d] = 0; 
-            // cout << "]";    
+            indices[d] = 0;
         }
 
-        if (i < getSize() - 1) {
-            cout << ", ";
+        if (getDim() == 2 && indices[getDim() - 1] == 0) {
+            cout << endl;
         }
     }
-
-    // for (int d = 0; d < getDim(); d++) {
-    //     cout << "]";
-    // }
-    cout << endl;
 }
 
 template <typename T>
