@@ -6,58 +6,68 @@
 
 using namespace std;
 
-template <typename T = float>
+template <typename T>
 class Array {
- private:
+private:
     vector<int> shape;
     vector<T> data;
     vector<int> strides;
     int dimension;
     int size;
 
- public:
+public:
     // Setter
     void setDim(int dim) { dimension = dim; }
     void setSize(int s) { size = s; }
     void setData(int index, T value) { data[index] = value; }
     void setShape(vector<int> s) { shape = s; }
 
-    // Constructor
-    Array();
-    Array(const vector<int>& shape) : shape(shape) {
-        setDim(shape.size());
-
-        int size = 1;
-        for (int i = 0; i < getDim(); i++) {
-            size *= shape[i]; 
-        }
-
-        setSize(size);
-
-        data.resize(getSize());
-
-        for (int i = 0; i < size; i++) {
-            setData(i, 0);
-        }
-
-        calcStrides(strides, shape, dimension);
-    }
-
-    // Destructor
-    ~Array() {}
-
-    // Functions
-    void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
-    int flatIndex(const vector<int> indices) const;
-    void randomize(float lower, float upper);
-    void transpose();
-    
-    // Getter
     int getDim() { return dimension; }
     int getSize() { return size; }
     vector<T> getData() { return data; }
     vector<int> getShape() { return shape; }
     vector<int> getStrides() { return strides; }
+
+    // Constructor
+    Array(const vector<int>& shape) : shape(shape) {
+        setDim(shape.size());
+
+        // Use the member size variable, not a local variable
+        int size = 1;
+        for (int i = 0; i < getDim(); i++) {  // Use 'dimension' instead of 'getDim()'
+            size *= shape[i];
+        }
+
+        setSize(size);
+
+        data.resize(size);  // Resize 'data' vector to the calculated size
+
+        // Initialize all elements to zero
+        for (int i = 0; i < size; i++) {
+            setData(i, 0);
+        }
+
+        calcStrides(strides, shape, dimension);  // Use the already initialized 'dimension'
+    }
+
+    // Destructor
+    ~Array() {}
+
+    void randomize(float lower, float upper) {
+        random_device rd; 
+        mt19937 gen(rd()); 
+        uniform_real_distribution<float> dist(lower, upper); 
+        for (int i = 0; i < getSize(); i++) {
+            setData(i, dist(gen));
+        }
+    }   
+    // Functions
+    void zeroTensor();
+    void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
+    int flatIndex(const vector<int> indices) const;
+    void transpose();
+    
+    
     void print();
 
     T& at(const vector<int>& indices);
@@ -89,35 +99,47 @@ void Array<T>::calcStrides(vector<int>& strides, vector<int> shape, int dimensio
     }
 }
 
-template <typename T>
-void Array<T>::randomize(float lower, float upper) {
-    random_device rd; 
-    mt19937 gen(rd()); 
-    uniform_real_distribution<float> dist(lower, upper); 
-    for (int i = 0; i < getSize(); i++) {
-        setData(i, dist(gen));
-    }
-}
+// template <typename T>
+// void Array<T>::randomize(float lower, float upper) {
+//     random_device rd; 
+//     mt19937 gen(rd()); 
+//     uniform_real_distribution<float> dist(lower, upper); 
+//     for (int i = 0; i < getSize(); i++) {
+//         setData(i, dist(gen));
+//     }
+// }
 
 template <typename T>
 void Array<T>::print() {
-    vector<int> indices(getDim(), 0); 
-
+    vector<int> indices(getDim(), 0);
+    //EVERYTHING PRINTS IN ORDER OF ACCESED ex: (0,0), (0,1) (1,0) (1,1) (2,0) (2,1).... EXCEPT FOR THE BRACKETS AND NEWLINES
     for (int i = 0; i < getSize(); i++) {
-        cout << at(indices) << " ";
+        // for (int d = 0; d < getDim(); d++) {
+        //     if (indices[d] == 0) {
+        //         cout << "[";
+        //     }
+        // }
+
+        cout << at(indices);
 
         for (int d = getDim() - 1; d >= 0; d--) {
             indices[d]++;
             if (indices[d] < shape[d]) {
                 break;
             }
-            indices[d] = 0;
+            indices[d] = 0; 
+            // cout << "]";    
         }
 
-        if (getDim() == 2 && indices[getDim() - 1] == 0) {
-            cout << endl;
+        if (i < getSize() - 1) {
+            cout << ", ";
         }
     }
+
+    // for (int d = 0; d < getDim(); d++) {
+    //     cout << "]";
+    // }
+    cout << endl;
 }
 
 template <typename T>
