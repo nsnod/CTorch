@@ -13,11 +13,14 @@ TEST(ExampleTest, OneIsOne) {
 
 int main(int argc, char **argv) {
 
-    Tensor<float> test({3,2});
+    Tensor<float> test({3,2,1,4,5});
+    Tensor<float> mulMe({5,4,2,3});
 
-    test.randomize_tensor(-1, 1);
+    // test.randomize_tensor(-1, 1);
 
-    test.print_tensor();
+    // test.print_tensor();
+
+    test.tensorMulData(test.getData(), mulMe.getData());
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

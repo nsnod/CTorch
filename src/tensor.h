@@ -103,32 +103,40 @@ class Tensor {
     
 
     // only works for 1d and 2d 
-    void tensorMulData(Array<T>* data, Tensor mult) {
-        Array<T>* multData = mult.getData();
-
+    void tensorMulData(Array<T>* data, Array<T>* multData) {
         vector<int> dataShape = data->getShape();
         vector<int> multShape = multData->getShape();
         vector<int> outputShape;
         int dataIndex = dataShape.size() - 1;
         int multIndex = 0;
 
-        while (dataIndex >= 0 && multIndex != multShape.size() - 1 && dataShape[dataIndex] == multShape[multIndex]) {
+        while (dataIndex >= 0 && multIndex < multShape.size() && dataShape[dataIndex] == multShape[multIndex]) {
             dataIndex--;
             multIndex++;
         }
 
         for (int i = 0; i <= dataIndex; i++) {
+            cout << dataShape[i] << " ";
             outputShape.push_back(dataShape[i]);
         }
-        for (int i = multShape.size() - 1; i >= multIndex; i--) {
-            outputShape.push_back(multShape[multIndex]);
+        cout << endl;
+        for (int i = multIndex; i < multShape.size(); i++) {
+            cout << multShape[i] << " ";
+            outputShape.push_back(multShape[i]);
         }
 
-        Array<T>* output(outputShape);
+        cout << "This is the outputs shape" << endl;
+        for (int i = 0; i < outputShape.size(); i++) {
+            cout << outputShape[i] << ", ";
+        }
+
+        Array<T>* output = new Array<T>(outputShape);
+
         
         
 
         setData(output);
+        output = nullptr;
     }
 
 };
