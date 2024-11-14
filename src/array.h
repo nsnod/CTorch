@@ -25,6 +25,7 @@ public:
     int getDim() { return dimension; }
     int getSize() { return size; }
     vector<T> getData() { return data; }
+    vector<T> getGrad() { return data; }
     vector<int> getShape() { return shape; }
     vector<int> getStrides() { return strides; }
 
@@ -66,7 +67,7 @@ public:
     void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
     int flatIndex(const vector<int> indices) const;
     void transpose();
-    
+
     
     void print();
 

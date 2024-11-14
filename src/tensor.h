@@ -22,6 +22,15 @@ class Tensor {
         delete grad_;
     }
     
+    // getters
+    Array<T>* getData() { return data_; }
+    Array<T>* getGrad() { return data_; }
+
+    // setters
+    void setData(Array<T>* inputData_) { data_ = inputData_; }
+    void setGrad(Array<T>* inputGrad_) { grad_ = inputGrad_; }
+
+
     // Functions 
 
     //no need for tensor zero. the array is inhertly 0.
@@ -92,16 +101,34 @@ class Tensor {
         }
     }
     
-    // // requires matrix multplication
-    // T matmul(T arr1[][], T arr2[][])
-    // {
-    //     for (i = 0; i < arr.size(); i++)
-    //     {
-    //         for (j = 0; j < arr.size(); j++)
-    //         {
-    //             arr1[i][j] = arr1[i][j] * arr2[i][j];
-    //         }
-    //     }
-    // }
-    // element wise multiplication
+
+    // only works for 1d and 2d 
+    void tensorMulData(Array<T>* data, Tensor mult) {
+        Array<T>* multData = mult.getData();
+
+        vector<int> dataShape = data->getShape();
+        vector<int> multShape = multData->getShape();
+        vector<int> outputShape;
+        int dataIndex = dataShape.size() - 1;
+        int multIndex = 0;
+
+        while (dataIndex >= 0 && multIndex != multShape.size() - 1 && dataShape[dataIndex] == multShape[multIndex]) {
+            dataIndex--;
+            multIndex++;
+        }
+
+        for (int i = 0; i <= dataIndex; i++) {
+            outputShape.push_back(dataShape[i]);
+        }
+        for (int i = multShape.size() - 1; i >= multIndex; i--) {
+            outputShape.push_back(multShape[multIndex]);
+        }
+
+        Array<T>* output(outputShape);
+        
+        
+
+        setData(output);
+    }
+
 };
