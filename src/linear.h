@@ -1,23 +1,24 @@
-// #pragma once
-// #include "linear.h"
-// #include "tensor.h"
-// #include <iostream>
-// #include <vector>
+#pragma once
+#include <iostream>
+#include <vector>
+#include <Eigen/Dense>
 
-// using namespace std;
+using namespace std;
 
-// class LinearLayer{
-// public:
-//     Tensor<float> weights;
+class LinearLayer {
+public:
+    Eigen::MatrixXd weights;
 
-//     LinearLayer(int input_size, int output_size){
-//         weights = Tensor<float>(input_size, output_size); 
-//     }
-//     ~LinearLayer(){
+    LinearLayer(int input_size, int output_size) {
+        // Initialize weights with the shape (output_size, input_size) for matrix multiplication
+        weights = Eigen::MatrixXd::Random(output_size, input_size);
+    }
 
-//     }
+    Eigen::VectorXd forward(const Eigen::VectorXd& X) { 
+        // Print the shape of X
+        cout << "X shape: " << X.rows() << " " << X.cols() << endl;
 
-//     void forward(Tensor<float> input){
-//         return input.matmul(weights);
-//     }
-// };
+        // Multiply weights with X
+        return weights * X;
+    }
+};

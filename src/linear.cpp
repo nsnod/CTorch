@@ -1,20 +1,15 @@
-#include <Eigen/Dense>
+
 #include <iostream>
+#include "linear.h"
+#include <Eigen/Dense>
+
+using namespace std;
 
 int main() {
-    Eigen::MatrixXd matA(2, 2);
-    Eigen::MatrixXd matB(2, 2);
+    LinearLayer linear = LinearLayer(784, 10);
+    Eigen::VectorXd vec = Eigen::VectorXd::Random(784, 1);
 
-    // Initialize matrices
-    matA << 1, 2,
-            3, 4;
-    matB << 5, 6,
-            7, 8;
-
-    // Perform matrix multiplication
-    Eigen::MatrixXd result = matA * matB;
-
-    std::cout << "Result:\n" << result << std::endl;
+    std::cout << "Result:\n" << linear.forward(vec) << std::endl;
 
     return 0;
 }
