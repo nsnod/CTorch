@@ -110,6 +110,24 @@ class Tensor {
         int dataIndex = dataShape.size() - 1;
         int multIndex = 0;
 
+        if (dataShape[dataIndex] != multShape[multIndex]) {
+            cout << "Your tensors are not able to be multiplied! Check the shape." << endl;
+            cout << "Your initial data shape: (";
+            for (int i = 0; i < dataShape.size(); i++) {
+                cout << dataShape[i] << ", ";
+            }
+            cout << ")" << endl;
+
+            cout << "Multiplying tensor shape: (";
+            for (int i = 0; i < multShape.size(); i++) {
+                cout << multShape[i] << ", ";
+            }
+            cout << ")" << endl;
+
+            cout << endl << "Try again!" << endl;
+            return;
+        }
+
         while (dataIndex >= 0 && multIndex < multShape.size() && dataShape[dataIndex] == multShape[multIndex]) {
             dataIndex--;
             multIndex++;
@@ -129,6 +147,8 @@ class Tensor {
         for (int i = 0; i < outputShape.size(); i++) {
             cout << outputShape[i] << ", ";
         }
+
+        
 
         Array<T>* output = new Array<T>(outputShape);
 
