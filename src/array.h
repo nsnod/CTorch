@@ -33,35 +33,27 @@ public:
     Array(const vector<int>& shape) : shape(shape) {
         setDim(shape.size());
 
-        // Use the member size variable, not a local variable
         int size = 1;
-        for (int i = 0; i < getDim(); i++) {  // Use 'dimension' instead of 'getDim()'
+        for (int i = 0; i < getDim(); i++) {  
             size *= shape[i];
         }
 
         setSize(size);
 
-        data.resize(size);  // Resize 'data' vector to the calculated size
+        data.resize(size);  
 
-        // Initialize all elements to zero
         for (int i = 0; i < size; i++) {
             setData(i, 0);
         }
 
-        calcStrides(strides, shape, dimension);  // Use the already initialized 'dimension'
+        calcStrides(strides, shape, dimension);  
     }
 
     // Destructor
     ~Array() {}
 
-    void randomize(float lower, float upper) {
-        random_device rd; 
-        mt19937 gen(rd()); 
-        uniform_real_distribution<float> dist(lower, upper); 
-        for (int i = 0; i < getSize(); i++) {
-            setData(i, dist(gen));
-        }
-    }   
+    void randomize(float lower, float upper);
+
     // Functions
     void zeroTensor();
     void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
@@ -74,8 +66,6 @@ public:
     T& at(const vector<int>& indices);
 
 };
-
-
 
 
 // FUNCTION IMPLEMENTATIONS HAVE TO STAY HERE BECAUSE OF TEMPLATE
@@ -100,15 +90,15 @@ void Array<T>::calcStrides(vector<int>& strides, vector<int> shape, int dimensio
     }
 }
 
-// template <typename T>
-// void Array<T>::randomize(float lower, float upper) {
-//     random_device rd; 
-//     mt19937 gen(rd()); 
-//     uniform_real_distribution<float> dist(lower, upper); 
-//     for (int i = 0; i < getSize(); i++) {
-//         setData(i, dist(gen));
-//     }
-// }
+template <typename T>
+void Array<T>::randomize(float lower, float upper) {
+    random_device rd; 
+    mt19937 gen(rd()); 
+    uniform_real_distribution<float> dist(lower, upper); 
+    for (int i = 0; i < getSize(); i++) {
+        setData(i, dist(gen));
+    }
+}  
 
 template <typename T>
 void Array<T>::print() {
