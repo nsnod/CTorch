@@ -25,6 +25,7 @@ public:
     int getDim() { return dimension; }
     int getSize() { return size; }
     vector<T> getData() { return data; }
+    vector<T> getGrad() { return data; }
     vector<int> getShape() { return shape; }
     vector<int> getStrides() { return strides; }
 
@@ -32,49 +33,39 @@ public:
     Array(const vector<int>& shape) : shape(shape) {
         setDim(shape.size());
 
-        // Use the member size variable, not a local variable
         int size = 1;
-        for (int i = 0; i < getDim(); i++) {  // Use 'dimension' instead of 'getDim()'
+        for (int i = 0; i < getDim(); i++) {  
             size *= shape[i];
         }
 
         setSize(size);
 
-        data.resize(size);  // Resize 'data' vector to the calculated size
+        data.resize(size);  
 
-        // Initialize all elements to zero
         for (int i = 0; i < size; i++) {
             setData(i, 0);
         }
 
-        calcStrides(strides, shape, dimension);  // Use the already initialized 'dimension'
+        calcStrides(strides, shape, dimension);  
     }
 
     // Destructor
     ~Array() {}
 
-    void randomize(float lower, float upper) {
-        random_device rd; 
-        mt19937 gen(rd()); 
-        uniform_real_distribution<float> dist(lower, upper); 
-        for (int i = 0; i < getSize(); i++) {
-            setData(i, dist(gen));
-        }
-    }   
+    void randomize(float lower, float upper);
+
     // Functions
     void zeroTensor();
     void calcStrides(vector<int>& strides, vector<int> shape, int dimension);
     int flatIndex(const vector<int> indices) const;
     void transpose();
-    
+
     
     void print();
 
     T& at(const vector<int>& indices);
 
 };
-
-
 
 
 // FUNCTION IMPLEMENTATIONS HAVE TO STAY HERE BECAUSE OF TEMPLATE
@@ -99,47 +90,35 @@ void Array<T>::calcStrides(vector<int>& strides, vector<int> shape, int dimensio
     }
 }
 
-// template <typename T>
-// void Array<T>::randomize(float lower, float upper) {
-//     random_device rd; 
-//     mt19937 gen(rd()); 
-//     uniform_real_distribution<float> dist(lower, upper); 
-//     for (int i = 0; i < getSize(); i++) {
-//         setData(i, dist(gen));
-//     }
-// }
+template <typename T>
+void Array<T>::randomize(float lower, float upper) {
+    random_device rd; 
+    mt19937 gen(rd()); 
+    uniform_real_distribution<float> dist(lower, upper); 
+    for (int i = 0; i < getSize(); i++) {
+        setData(i, dist(gen));
+    }
+}  
 
 template <typename T>
 void Array<T>::print() {
     vector<int> indices(getDim(), 0);
-    //EVERYTHING PRINTS IN ORDER OF ACCESED ex: (0,0), (0,1) (1,0) (1,1) (2,0) (2,1).... EXCEPT FOR THE BRACKETS AND NEWLINES
-    for (int i = 0; i < getSize(); i++) {
-        // for (int d = 0; d < getDim(); d++) {
-        //     if (indices[d] == 0) {
-        //         cout << "[";
-        //     }
-        // }
 
-        cout << at(indices);
+    for (int i = 0; i < getSize(); i++) {
+        cout << at(indices) << " ";
 
         for (int d = getDim() - 1; d >= 0; d--) {
             indices[d]++;
             if (indices[d] < shape[d]) {
                 break;
             }
-            indices[d] = 0; 
-            // cout << "]";    
+            indices[d] = 0;
         }
 
-        if (i < getSize() - 1) {
-            cout << ", ";
+        if (getDim() >= 2 && indices[getDim() - 1] == 0) {
+            cout << endl;
         }
     }
-
-    // for (int d = 0; d < getDim(); d++) {
-    //     cout << "]";
-    // }
-    cout << endl;
 }
 
 template <typename T>
