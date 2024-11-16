@@ -12,10 +12,9 @@ class Tensor {
 
  public:
     Tensor(vector<int> shape) : shape_(shape), data_(nullptr), grad_(nullptr) {
-        // Initialize the member variables (not local variables)
         if (shape_.size() == 1) {
-            shape_.push_back(1);
-        }
+            shape_.push_back(1);  
+        } 
 
         data_ = new Array<T>(shape_);
         grad_ = new Array<T>(shape_);
@@ -55,11 +54,13 @@ class Tensor {
         for (int i = 0; i < data_->getDim(); i++) { 
             cout << data_->getShape()[i] << ", ";
         }
-        cout << ")" << endl;
+        cout << ")" << endl << endl;
         cout << "data" << endl;
         data_->print();
+        cout << endl;
         cout << "grad" << endl;
         grad_->print();
+        cout << endl;
     }
 
     void tensorAddScalar(T scalar) {
@@ -112,40 +113,42 @@ class Tensor {
         vector<int> dataShape = data->getShape();
         vector<int> multShape = multData->getShape();
         vector<int> outputShape;
-        int dataColumnsIndex = -1;
-        int multRowsIndex = 0;
 
-        //1 2
-        //2 3
-
-        if (multShape.size() == 1 && dataShape.size() == 1) {
-            outputShape.push_back(dataShape[dataColumnsIndex] * multShape[multRowsIndex]);
-        } else {
-            if (dataShape[dataColumnsIndex] != multShape[multRowsIndex]) {
-                cout << "Your tensors are not able to be multiplied! Check the shape." << endl;
-                cout << "Your initial data shape: (";
-                for (int i = 0; i < dataShape.size(); i++) {
-                    cout << dataShape[i] << ", ";
-                }
-                cout << ")" << endl;
-
-                cout << "Multiplying tensor shape: (";
-                for (int i = 0; i < multShape.size(); i++) {
-                    cout << multShape[i] << ", ";
-                }
-                cout << ")" << endl;
-
-                cout << endl << "Try again!" << endl;
-                return;
-            } else {
-                // outputShape.push_back[]
+        if (dataShape[dataShape.size() - 1] != multShape[0]) {
+            cout << "Your tensors are not able to be multiplied! Check the shape." << endl;
+            cout << "Your initial data shape: (";
+            for (int i = 0; i < dataShape.size(); i++) {
+                cout << dataShape[i] << ", ";
             }
+            cout << ")" << endl;
 
-            
+            cout << "Multiplying tensor shape: (";
+            for (int i = 0; i < multShape.size(); i++) {
+                cout << multShape[i] << ", ";
+            }
+            cout << ")" << endl;
+
+            cout << endl << "Try again!" << endl;
+            return;
+        } else {
+            outputShape.push_back(dataShape[0]);
+            outputShape.push_back(multShape[dataShape.size() - 1]);
         }
 
-
         Array<T>* output = new Array<T>(outputShape);
+
+        for (int i = 0; i < dataShape[0]; i++) { 
+            for (int j = 0; j < multShape[1]; j++) { 
+                T sum = 0;
+                for (int k = 0; k < dataShape[1]; k++) { 
+                    vector<int> indexA = {i, k}; 
+                    vector<int> indexB = {k, j}; 
+                    sum += data->at(indexA) * multData->at(indexB);
+                }
+                vector<int> indexOutput = {i, j}; 
+                output->at(indexOutput) = sum; 
+            }
+        }
 
         setData(output);
         output = nullptr;
