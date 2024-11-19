@@ -11,6 +11,9 @@ class Tensor {
     vector<int> shape_;
 
  public:
+
+    Tensor() : shape_(0), data_(nullptr), grad_(nullptr){} 
+
     Tensor(vector<int> shape) : shape_(shape), data_(nullptr), grad_(nullptr) {
         if (shape_.size() == 1) {
             shape_.push_back(1);  
@@ -28,10 +31,12 @@ class Tensor {
     // getters
     Array<T>* getData() { return data_; }
     Array<T>* getGrad() { return data_; }
+    vector<int> getShape{return shape_;}
 
     // setters
     void setData(Array<T>* inputData_) { data_ = inputData_; }
     void setGrad(Array<T>* inputGrad_) { grad_ = inputGrad_; }
+    void setShape(vector<int> shape) {shape_ = shape; }
 
 
     // Functions 
