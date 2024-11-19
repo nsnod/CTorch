@@ -1,5 +1,6 @@
 #include <iostream>
 #include "tensor.h"
+#include "linear.h"
 
 int main() {
     Tensor<float> matA({2, 2});
@@ -15,7 +16,12 @@ int main() {
     // Perform matrix multiplication
     matC.tensorMulData(matA.getData(), matB.getData());
 
-    matC.print_tensor();
+
+    LinearLayer test(2,2);
+
+    (test.forward(matA)).print_tensor();
+
+    
     
     return 0;
 }

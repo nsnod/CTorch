@@ -31,7 +31,7 @@ class Tensor {
     // getters
     Array<T>* getData() { return data_; }
     Array<T>* getGrad() { return data_; }
-    vector<int> getShape{return shape_;}
+    vector<int> getShape(){return shape_;}
 
     // setters
     void setData(Array<T>* inputData_) { data_ = inputData_; }

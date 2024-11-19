@@ -16,15 +16,18 @@ public:
 
     }
 
-    Tensor <double> forward(const Tensor<float>& X) { 
+    Tensor <float> forward(Tensor<float>& X) { 
         //Print the shape of X
         //X.print_tensor();
         // Multiply weights with X
 
-       int row = (weights.getShape())[0];
+        Tensor<float> output_tensor;
 
-        Tensor<float> output(,)
+       output_tensor.setShape({(weights.getShape()).at(0),(X.getShape()).at(1)}); //setting dimensions (nxm) (x*y) = n*y matrix//
 
-        
+       output_tensor.tensorMulData(weights.getData(),X.getData());
+
+        return output_tensor;
+
     }
 };
