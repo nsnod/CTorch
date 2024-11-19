@@ -105,7 +105,7 @@ class Tensor {
             grad_->setData(i, grad_->getData()[i] / scalar);
         }
     }
-    
+
 
     // ONLY WORKS FOR 1D AND 2D CURRENTLY
     // in place until we expand for CNN 3ds
@@ -155,3 +155,5 @@ class Tensor {
     }
 
 };
+
+

@@ -30,8 +30,6 @@ int main(int argc, char **argv) {
 
     test.print_tensor();
 
-
-
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

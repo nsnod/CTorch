@@ -8,7 +8,6 @@ include_directories(src)
 
 set(SOURCES
     main.cpp
-    src/linear.cpp
     src/tensor.cpp
 )
 
@@ -35,12 +34,15 @@ if(BUILD_TESTING)
 
     add_executable(tensorTests tests/tensorTests.cpp)
     add_executable(arrayTests tests/arrayTests.cpp)
+    add_executable(linear_test tests/linear_test.cpp)
 
     target_link_libraries(tensorTests gtest gtest_main)
     target_link_libraries(arrayTests gtest gtest_main)
+    target_link_libraries(linear_test gtest gtest_main)
 
 
     add_test(NAME TensorTests COMMAND tensorTests)
     add_test(NAME ArrayTests COMMAND arrayTest)
+    add_test(NAME LinearTest COMMAND linearTest)
 
 endif()

@@ -13,7 +13,7 @@ Even though it is stored in a one dimensional array we access it like its some N
 
 # Building
 Turn the testing option in CMakeLists.txt OFF or ON if you want to run the tests. Make the script executable and run.
-> chmod +x build.sh\
+> chmod +x build.sh
 > ./build.sh
 
 

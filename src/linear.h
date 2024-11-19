@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include <Eigen/Dense>
+#include "../src/tensor.h"
 
 using namespace std;
 
