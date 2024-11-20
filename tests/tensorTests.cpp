@@ -25,10 +25,10 @@ int main(int argc, char **argv) {
     mulMe.print_tensor();
 
 
-    test.tensorMulData(test.getData(), mulMe.getData());
+    Tensor<float> result = test * mulMe;
 
 
-    test.print_tensor();
+    result.print_tensor();
 
 
 
