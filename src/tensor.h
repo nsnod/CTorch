@@ -12,7 +12,7 @@ class Tensor {
 
  public:
 
-    Tensor() : shape_(0), data_(nullptr), grad_(nullptr){} 
+    Tensor() : shape_(0), data_(nullptr), grad_(nullptr){    } 
 
     Tensor(vector<int> shape) : shape_(shape), data_(nullptr), grad_(nullptr) {
         if (shape_.size() == 1) {
@@ -36,7 +36,29 @@ class Tensor {
     // setters
     void setData(Array<T>* inputData_) { data_ = inputData_; }
     void setGrad(Array<T>* inputGrad_) { grad_ = inputGrad_; }
-    void setShape(vector<int> shape) {shape_ = shape; }
+    void setShape(vector<int> shape) {
+        // if the shape isnt set yet
+        if(shape_.size() == 0){
+            for(auto dim : shape){
+                shape_.push_back(dim);
+            }
+        }
+        else{
+            // TODO 
+            // delete the original shape and set it as the new one
+            shape_ = shape; 
+        }
+
+        // reset the data 
+        delete getData();
+        delete getGrad();
+        setData(new Array<T>(shape_));
+        setGrad(new Array<T>(shape_));
+
+        // TODO
+        // automatically check if the shape can be rearranged if not set to default random values
+
+    }
 
 
     // Functions 
