@@ -13,22 +13,20 @@ TEST(ExampleTest, OneIsOne) {
 
 int main(int argc, char **argv) {
 
-    Tensor<float> test({3});
-    Tensor<float> mulMe({1, 3});
+    Tensor<float> test1;
+    test1.reShape({3,1});
+    test1.print_tensor();
 
-    vector<int> shapeTest = test.getData()->getShape();
+    test1.randomize_tensor(-1, 1);
+    test1.print_tensor();
 
-    test.randomize_tensor(-1, 1);
-    test.print_tensor();
+    Tensor<float> test2({1,10});
 
-    mulMe.randomize_tensor(-1, 1);
-    mulMe.print_tensor();
+    test2.print_tensor();
 
+    Tensor<float> test3 = test1 * test2;
 
-    Tensor<float> result = test * mulMe;
-
-
-    result.print_tensor();
+    test3.print_tensor();
 
 
 

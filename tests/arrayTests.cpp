@@ -11,21 +11,21 @@ using namespace std;
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
-    Array<float> myArray({10, 1});
+    // Array<float> myArray({10, 1});
 
-    cout << myArray.getDim() << " " << myArray.getSize() << endl;
+    // cout << myArray.getDim() << " " << myArray.getSize() << endl;
 
 
-    myArray.randomize(-1.0, 1.0);
+    // myArray.randomize(-1.0, 1.0);
 
-    vector<float> testData = myArray.getData();
+    // vector<float> testData = myArray.getData();
 
-    for (int i = 0; i < testData.size(); i++) {
-        cout << testData[i] << " ";
-    }
-    cout << endl << endl;
+    // for (int i = 0; i < testData.size(); i++) {
+    //     cout << testData[i] << " ";
+    // }
+    // cout << endl << endl;
     
-    myArray.print();
+    // myArray.print();
 
 
 
