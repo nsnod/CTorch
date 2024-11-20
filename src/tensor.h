@@ -26,8 +26,8 @@ class Tensor {
     }
     
     // getters
-    Array<T>* getData() { return data_; }
-    Array<T>* getGrad() { return data_; }
+    Array<T>* getData() const { return data_; } 
+    Array<T>* getGrad() const { return data_; }
 
     // setters
     void setData(Array<T>* inputData_) { data_ = inputData_; }
@@ -109,49 +109,47 @@ class Tensor {
 
     // ONLY WORKS FOR 1D AND 2D CURRENTLY
     // in place until we expand for CNN 3ds
-    void tensorMulData(Array<T>* data, Array<T>* multData) {
+    Tensor operator*(const Tensor& other) const {
+        Array<float>* data = this->getData();
+        Array<float>* multData = other.getData();
+
         vector<int> dataShape = data->getShape();
         vector<int> multShape = multData->getShape();
         vector<int> outputShape;
 
-        if (dataShape[dataShape.size() - 1] != multShape[0]) {
-            cout << "Your tensors are not able to be multiplied! Check the shape." << endl;
-            cout << "Your initial data shape: (";
-            for (int i = 0; i < dataShape.size(); i++) {
-                cout << dataShape[i] << ", ";
-            }
-            cout << ")" << endl;
-
-            cout << "Multiplying tensor shape: (";
-            for (int i = 0; i < multShape.size(); i++) {
-                cout << multShape[i] << ", ";
-            }
-            cout << ")" << endl;
-
-            cout << endl << "Try again!" << endl;
-            return;
-        } else {
-            outputShape.push_back(dataShape[0]);
-            outputShape.push_back(multShape[dataShape.size() - 1]);
+        if (dataShape.size() != 2 || multShape.size() != 2) {
+            std::cerr << "Error: Multiplication only supports 2D tensors!" << std::endl;
+            exit(EXIT_FAILURE);
         }
+
+        if (dataShape[1] != multShape[0]) {
+            std::cerr << "Error: Incompatible shapes for multiplication!" << std::endl;
+            std::cerr << "Shape of tensor A: (" << dataShape[0] << ", " << dataShape[1] << ")" << std::endl;
+            std::cerr << "Shape of tensor B: (" << multShape[0] << ", " << multShape[1] << ")" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        outputShape.push_back(dataShape[0]);
+        outputShape.push_back(multShape[1]); 
 
         Array<T>* output = new Array<T>(outputShape);
 
-        for (int i = 0; i < dataShape[0]; i++) { 
-            for (int j = 0; j < multShape[1]; j++) { 
+        for (int i = 0; i < dataShape[0]; i++) {       
+            for (int j = 0; j < multShape[1]; j++) {   
                 T sum = 0;
                 for (int k = 0; k < dataShape[1]; k++) { 
-                    vector<int> indexA = {i, k}; 
-                    vector<int> indexB = {k, j}; 
+                    vector<int> indexA = {i, k};
+                    vector<int> indexB = {k, j};
                     sum += data->at(indexA) * multData->at(indexB);
                 }
-                vector<int> indexOutput = {i, j}; 
-                output->at(indexOutput) = sum; 
+                vector<int> indexOutput = {i, j};
+                output->at(indexOutput) = sum;
             }
         }
 
-        setData(output);
-        output = nullptr;
-    }
+        Tensor<T> result(outputShape);
+        result.setData(output);
 
+        return result;
+    }
 };
