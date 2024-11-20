@@ -9,7 +9,6 @@ include_directories(src)
 set(SOURCES
     main.cpp
     src/linear.cpp
-    src/tensor.cpp
 )
 
 set(HEADERS
