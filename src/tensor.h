@@ -1,6 +1,8 @@
 #pragma once
 
 #include "array.h"
+#include <pthread.h>
+#include <thread>
 
 template <typename T = float>
 
@@ -64,12 +66,37 @@ class Tensor {
     }
 
     Tensor<T>& operator+=(T scalar) {
-        for (int i = 0; i < data_->getSize(); i++) {
-            data_->setData(i, data_->getData()[i] + scalar);
+        int numThreads = 16;
+
+        int chunkSize = (data_->getSize() + numThreads - 1) / numThreads;
+        std::vector<std::thread> threads(numThreads * 2);
+
+        for (int t = 0; t < numThreads; ++t) {
+            int startIdx = t * chunkSize;
+            int endIdx = std::min(startIdx + chunkSize, data_->getSize());
+
+            threads[t] = std::thread([this, startIdx, endIdx, scalar]() {
+                for (int i = startIdx; i < endIdx; ++i) {
+                    this->data_->setData(i, this->data_->getData(i) + scalar);
+                }
+            });
         }
 
-        for (int i = 0; i < grad_->getSize(); i++) {
-            grad_->setData(i, grad_->getData()[i] + 1);
+        for (int t = 0; t < numThreads; ++t) {
+            int startIdx = t * chunkSize;
+            int endIdx = std::min(startIdx + chunkSize, grad_->getSize());
+
+            threads[numThreads + t] = std::thread([this, startIdx, endIdx, scalar]() {
+                for (int i = startIdx; i < endIdx; ++i) {
+                    this->grad_->setData(i, this->grad_->getData(i) + 1);
+                }
+            });
+        }
+
+        for (auto& th : threads) {
+            if (th.joinable()) {
+                th.join();
+            }
         }
 
         return *this;

@@ -29,6 +29,14 @@ public:
     vector<int> getShape() { return shape; }
     vector<int> getStrides() { return strides; }
 
+    T& operator[](int index) {
+        return data[index];
+    }
+
+    T getData(int index) const {
+        return data[index];
+    }
+
     // Constructor
     Array(const vector<int>& shape) : shape(shape) {
         setDim(shape.size());
