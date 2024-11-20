@@ -63,7 +63,7 @@ class Tensor {
         cout << endl;
     }
 
-    void tensorAddScalar(T scalar) {
+    Tensor<T>& operator+=(T scalar) {
         for (int i = 0; i < data_->getSize(); i++) {
             data_->setData(i, data_->getData()[i] + scalar);
         }
@@ -71,9 +71,11 @@ class Tensor {
         for (int i = 0; i < grad_->getSize(); i++) {
             grad_->setData(i, grad_->getData()[i] + 1);
         }
+
+        return *this;
     }
 
-    void tensorSubScalar(T scalar) {
+    Tensor<T>& operator-=(T scalar) {
         for (int i = 0; i < data_->getSize(); i++) {
             data_->setData(i, data_->getData()[i] - scalar);
         }
@@ -81,9 +83,11 @@ class Tensor {
         for (int i = 0; i < grad_->getSize(); i++) {
             grad_->setData(i, grad_->getData()[i] - 1);
         }
+
+        return *this;
     }
 
-    void tensorMultScalar(T scalar) {
+    Tensor<T>& operator*=(T scalar) {
         
         for (int i = 0; i < data_->getSize(); i++) {
             data_->setData(i, data_->getData()[i] * scalar);
@@ -92,10 +96,12 @@ class Tensor {
         for (int i = 0; i < grad_->getSize(); i++) {
             grad_->setData(i, grad_->getData()[i] * scalar);
         }
+
+        return *this;
     }
 
 
-    void tensorDivisionScalar(T scalar) {
+    Tensor<T>& operator/=(T scalar) {
         
         for (int i = 0; i < data_->getSize(); i++) {
             data_->setData(i, data_->getData()[i] / scalar);
@@ -104,6 +110,8 @@ class Tensor {
         for (int i = 0; i < grad_->getSize(); i++) {
             grad_->setData(i, grad_->getData()[i] / scalar);
         }
+
+        return *this;
     }
     
 
