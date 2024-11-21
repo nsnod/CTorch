@@ -238,4 +238,24 @@ class Tensor {
 
         return result;
     }
+
+
+    T operator[] (vector<int> indicies) {
+        if (indicies.size() != shape_.size()) {
+            cout << endl;
+            cout << "This is not a valid index!" << endl;
+            exit(EXIT_FAILURE);
+        } 
+
+        for (int i = 0; i < indicies.size(); i++) {
+            if (indicies[i] >= shape_[i]) {
+                cout << endl;
+                cout << "This is not a valid index!" << endl;
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        return data_->at(indicies);
+
+    }
 };
