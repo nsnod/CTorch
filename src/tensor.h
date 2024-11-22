@@ -1,186 +1,263 @@
 #pragma once
 
 #include "array.h"
+#include <pthread.h>
+#include <thread>
 
 template <typename T = float>
 
-class Tensor {
- private:
+class Tensor { 
+ public:
     Array<T>* data_;
     Array<T>* grad_;
     vector<int> shape_;
 
- public:
-
-    Tensor() : shape_(0), data_(nullptr), grad_(nullptr){    } 
+    Tensor() : shape_({}), data_(nullptr), grad_(nullptr) {}
 
     Tensor(vector<int> shape) : shape_(shape), data_(nullptr), grad_(nullptr) {
-        if (shape_.size() == 1) {
-            shape_.push_back(1);  
+        if (shape.size() == 1) {
+            shape.push_back(1);  
         } 
-
+        shape_ = shape;
         data_ = new Array<T>(shape_);
         grad_ = new Array<T>(shape_);
+    }
+
+    Tensor(const Tensor& other) {
+        shape_ = other.shape_;
+        data_ = new Array<T>(*other.data_);
+        grad_ = new Array<T>(*other.grad_);
+    }
+
+    Tensor& operator=(const Tensor& other) {
+        if (this != &other) {
+            delete data_;
+            delete grad_;
+            shape_ = other.shape_;
+            data_ = new Array<T>(*other.data_);
+            grad_ = new Array<T>(*other.grad_);
+        }
+        return *this;
     }
 
     ~Tensor() {
         delete data_;
         delete grad_;
     }
-    
-    // getters
-    Array<T>* getData() { return data_; }
-    Array<T>* getGrad() { return data_; }
-    vector<int> getShape(){return shape_;}
 
-    // setters
-    void setData(Array<T>* inputData_) { data_ = inputData_; }
-    void setGrad(Array<T>* inputGrad_) { grad_ = inputGrad_; }
-    void setShape(vector<int> shape) {
+    // Functions 
+
+    void reShape(vector<int> shape) {
         // if the shape isnt set yet
         if(shape_.size() == 0){
             for(auto dim : shape){
                 shape_.push_back(dim);
             }
-        }
-        else{
-            // TODO 
-            // delete the original shape and set it as the new one
-            shape_ = shape; 
+            // create new arrays with 0 values because tey didnt exist before 
+            delete data_;
+            delete grad_;
+            data_ = new Array<T>(shape_);
+            grad_ = new Array<T>(shape_);
+        } else {
+            int shapeCheck = 1;
+            for (int dim : shape) {
+                shapeCheck *= dim;
+            }
+            if (shapeCheck != data_->size_) {
+                cout << "You cannot reshape to those dimensions. Try again." << endl;
+                exit(EXIT_FAILURE);
+            } 
         }
 
-        // reset the data 
-        delete getData();
-        delete getGrad();
-        setData(new Array<T>(shape_));
-        setGrad(new Array<T>(shape_));
-
-        // TODO
-        // automatically check if the shape can be rearranged if not set to default random values
+        data_->shape_ = shape;
+        grad_->shape_ = shape;
+        data_->calcStrides();
+        grad_->calcStrides();
+        data_->dimension_ = shape.size();
+        grad_->dimension_ = shape.size();
 
     }
 
-
-    // Functions 
-
     //no need for tensor zero. the array is inhertly 0.
     void randomize_tensor(float lower, float upper) {
-        // Check if the arrays are initialized properly
+        // check if the arrays are initialized properly
         if (data_ != nullptr && grad_ != nullptr) {
             data_->randomize(lower, upper);
             grad_->randomize(lower, upper);
         } else {
-            std::cerr << "Error: Tensor arrays not properly initialized!" << std::endl;
+            cout << "Error: Tensor arrays not properly initialized!" << endl;
+            exit(EXIT_FAILURE);
         }
     }
 
     void print_tensor() {
+        if (shape_.size() == 0 || (data_ == nullptr && grad_ == nullptr)) {
+            cout << "Tensor is empty or uninitialized." << endl;
+            return;
+        }   
         cout << "Tensor:" << endl;
         cout << "shape" << endl;
         cout << "(";
-        for (int i = 0; i < data_->getDim(); i++) { 
-            cout << data_->getShape()[i] << ", ";
+        for (int i = 0; i < data_->dimension_; i++) { 
+            cout << data_->shape_[i] << ", ";
         }
         cout << ")" << endl << endl;
         cout << "data" << endl;
         data_->print();
         cout << endl;
         cout << "grad" << endl;
-        grad_->print();
+        if (grad_ == nullptr) {
+            cout << "Gradient has not been set for this tensor yet." << endl;
+        } else {
+            grad_->print();
+        }
         cout << endl;
     }
 
-    void tensorAddScalar(T scalar) {
-        for (int i = 0; i < data_->getSize(); i++) {
-            data_->setData(i, data_->getData()[i] + scalar);
+    Tensor<T>& operator+=(T scalar) {
+        int numThreads = 16;
+
+        int chunkSize = (data_->size_ + numThreads - 1) / numThreads;
+        std::vector<std::thread> threads(numThreads * 2);
+
+        for (int t = 0; t < numThreads; ++t) {
+            int startIdx = t * chunkSize;
+            int endIdx = std::min(startIdx + chunkSize, data_->size_);
+
+            threads[t] = std::thread([this, startIdx, endIdx, scalar]() {
+                for (int i = startIdx; i < endIdx; ++i) {
+                    this->data_->data_[i] = this->data_->data_[i] + scalar;
+                }
+            });
         }
 
-        for (int i = 0; i < grad_->getSize(); i++) {
-            grad_->setData(i, grad_->getData()[i] + 1);
+        for (int t = 0; t < numThreads; ++t) {
+            int startIdx = t * chunkSize;
+            int endIdx = std::min(startIdx + chunkSize, grad_->size_);
+
+            threads[numThreads + t] = std::thread([this, startIdx, endIdx, scalar]() {
+                for (int i = startIdx; i < endIdx; ++i) {
+                    this->grad_->data_[i] = this->grad_->data_[i] + 1;
+                }
+            });
         }
+
+        for (auto& th : threads) {
+            if (th.joinable()) {
+                th.join();
+            }
+        }
+
+        return *this;
     }
 
-    void tensorSubScalar(T scalar) {
-        for (int i = 0; i < data_->getSize(); i++) {
-            data_->setData(i, data_->getData()[i] - scalar);
+    Tensor<T>& operator-=(T scalar) {
+        for (int i = 0; i < data_->size_; i++) {
+            data_->data_[i] = data_->data_[i] - scalar;
         }
 
-        for (int i = 0; i < grad_->getSize(); i++) {
-            grad_->setData(i, grad_->getData()[i] - 1);
+        for (int i = 0; i < grad_->size_; i++) {
+            grad_->data_[i] = grad_->data_[i] - 1;
         }
+
+        return *this;
     }
 
-    void tensorMultScalar(T scalar) {
+    Tensor<T>& operator*=(T scalar) {
         
-        for (int i = 0; i < data_->getSize(); i++) {
-            data_->setData(i, data_->getData()[i] * scalar);
+        for (int i = 0; i < data_->size_; i++) {
+            data_->data_[i] = data_->data_[i] * scalar;
         }
 
-        for (int i = 0; i < grad_->getSize(); i++) {
-            grad_->setData(i, grad_->getData()[i] * scalar);
+        for (int i = 0; i < grad_->size_; i++) {
+            grad_->data_[i] = grad_->data_[i] * scalar;
         }
+
+        return *this;
     }
 
 
-    void tensorDivisionScalar(T scalar) {
+    Tensor<T>& operator/=(T scalar) {
         
-        for (int i = 0; i < data_->getSize(); i++) {
-            data_->setData(i, data_->getData()[i] / scalar);
+        for (int i = 0; i < data_->size_; i++) {
+            data_->data_[i] = data_->data_[i] / scalar;
         }
 
-        for (int i = 0; i < grad_->getSize(); i++) {
-            grad_->setData(i, grad_->getData()[i] / scalar);
+        for (int i = 0; i < grad_->size_; i++) {
+            grad_->data_[i] = grad_->data_[i] / scalar;
         }
+
+        return *this;
     }
 
 
     // ONLY WORKS FOR 1D AND 2D CURRENTLY
     // in place until we expand for CNN 3ds
-    void tensorMulData(Array<T>* data, Array<T>* multData) {
-        vector<int> dataShape = data->getShape();
-        vector<int> multShape = multData->getShape();
+    Tensor operator*(const Tensor& other) const {
+        Array<T>* data = this->data_;
+        Array<T>* multData = other.data_;
+
+        vector<int> dataShape = data_->shape_;
+        vector<int> multShape = other.data_->shape_;
         vector<int> outputShape;
 
-        if (dataShape[dataShape.size() - 1] != multShape[0]) {
-            cout << "Your tensors are not able to be multiplied! Check the shape." << endl;
-            cout << "Your initial data shape: (";
-            for (int i = 0; i < dataShape.size(); i++) {
-                cout << dataShape[i] << ", ";
-            }
-            cout << ")" << endl;
-
-            cout << "Multiplying tensor shape: (";
-            for (int i = 0; i < multShape.size(); i++) {
-                cout << multShape[i] << ", ";
-            }
-            cout << ")" << endl;
-
-            cout << endl << "Try again!" << endl;
-            return;
-        } else {
-            outputShape.push_back(dataShape[0]);
-            outputShape.push_back(multShape[dataShape.size() - 1]);
+        if (dataShape.size() != 2 || multShape.size() != 2) {
+            cout << "Error: Multiplication only supports 2D tensors!" << endl;
+            exit(EXIT_FAILURE);
         }
+
+        if (dataShape[1] != multShape[0]) {
+            cout << "Error: Incompatible shapes for multiplication!" << endl;
+            cout << "Shape of tensor A: (" << dataShape[0] << ", " << dataShape[1] << ")" << endl;
+            cout << "Shape of tensor B: (" << multShape[0] << ", " << multShape[1] << ")" << endl;
+            exit(EXIT_FAILURE);
+        }
+
+        outputShape.push_back(dataShape[0]);
+        outputShape.push_back(multShape[1]); 
 
         Array<T>* output = new Array<T>(outputShape);
 
-        for (int i = 0; i < dataShape[0]; i++) { 
-            for (int j = 0; j < multShape[1]; j++) { 
+        for (int i = 0; i < dataShape[0]; i++) {       
+            for (int j = 0; j < multShape[1]; j++) {   
                 T sum = 0;
                 for (int k = 0; k < dataShape[1]; k++) { 
-                    vector<int> indexA = {i, k}; 
-                    vector<int> indexB = {k, j}; 
+                    vector<int> indexA = {i, k};
+                    vector<int> indexB = {k, j};
                     sum += data->at(indexA) * multData->at(indexB);
                 }
-                vector<int> indexOutput = {i, j}; 
-                output->at(indexOutput) = sum; 
+                vector<int> indexOutput = {i, j};
+                output->at(indexOutput) = sum;
             }
         }
 
-        setData(output);
-        output = nullptr;
+        Tensor<T> result;
+        result.shape_ = outputShape;
+        result.data_ = output;
+        result.grad_ = nullptr;
+
+        return result;
     }
 
+
+    T operator[] (vector<int> indicies) {
+        if (indicies.size() != shape_.size()) {
+            cout << endl;
+            cout << "This is not a valid index!" << endl;
+            exit(EXIT_FAILURE);
+        } 
+
+        for (int i = 0; i < indicies.size(); i++) {
+            if (indicies[i] >= shape_[i]) {
+                cout << endl;
+                cout << "This is not a valid index!" << endl;
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        return data_->at(indicies);
+
+    }
 
     // Gradient Calculations 
     void relu_backward(Tensor<T> &output) {
@@ -189,5 +266,3 @@ class Tensor {
         }
     }
 };
-
-
