@@ -17,18 +17,11 @@ public:
     }
 
     Tensor <float> forward(Tensor<float>& X) { 
-        //Print the shape of X
-        //X.print_tensor();
         // Multiply weights with X
-        cout << "Forward" << endl;
         Tensor<float> output_tensor({(weights.getShape()).at(0),(X.getShape()).at(1)});//setting dimensions (nxm) (x*y) = n*y matrix//
-        output_tensor.print_tensor();
         output_tensor.randomize_tensor(-1, 1);
-        output_tensor.print_tensor();
-
         output_tensor.tensorMulData(output_tensor.getData(), X.getData());
 
         return output_tensor;
-
     }
 };

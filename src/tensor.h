@@ -181,6 +181,13 @@ class Tensor {
         output = nullptr;
     }
 
+
+    // Gradient Calculations 
+    void relu_backward(Tensor<T> &output) {
+        for(int i = 0; i < output.size(); i++){
+            grad_->setData(i, output.getData()->getData()[i] > 0 ? output.getGrad()->getData()[i] : 0);
+        }
+    }
 };
 
 

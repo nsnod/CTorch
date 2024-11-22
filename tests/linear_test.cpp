@@ -20,9 +20,8 @@ int main() {
 
     LinearLayer test(2,2);
 
-    test.forward(matA);
+    Tensor<float> matB = test.forward(matA);
+    matB.print_tensor();
 
-    
-    
     return 0;
 }
