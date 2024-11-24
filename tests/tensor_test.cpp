@@ -14,7 +14,7 @@ TEST(ExampleTest, OneIsOne) {
 int main(int argc, char **argv) {
 
     Tensor<float> test1;
-    test1.reShape({3,1});
+    test1.reshape({3,1});
 
     test1.randomize_tensor(-1, 1);
     test1.print_tensor();

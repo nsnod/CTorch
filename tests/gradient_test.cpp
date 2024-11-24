@@ -12,12 +12,18 @@ TEST(ExampleTest, OneIsOne) {
 }
 
 int main(int argc, char **argv) {
-    Tensor<float> test({3});
-    Tensor<float> test2({3});
+    Tensor<float> test({3, 4});
+    Tensor<float> test2({3, 4});
 
-    test.prev_.print()
+    test.prev_->print();
+    test += 1;
+    test2 += 3;
     test += test2;
-    test.prev_.print()
+    test.print_tensor();
+
+    test.prev_->print();
+    test -= 2;
+    test.print_tensor();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

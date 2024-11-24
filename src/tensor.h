@@ -52,7 +52,7 @@ class Tensor {
 
     // Functions 
 
-    void reShape(vector<int> shape) {
+    void reshape(vector<int> shape) {
         // if the shape isnt set yet
         if(shape_.size() == 0){
             for(auto dim : shape){
@@ -137,24 +137,11 @@ class Tensor {
             });
         }
 
-        for (int t = 0; t < numThreads; ++t) {
-            int startIdx = t * chunkSize;
-            int endIdx = std::min(startIdx + chunkSize, grad_->size_);
-
-            threads[numThreads + t] = std::thread([this, startIdx, endIdx, scalar]() {
-                for (int i = startIdx; i < endIdx; ++i) {
-                    this->grad_->data_[i] = this->grad_->data_[i] + 1;
-                }
-            });
-        }
-
         for (auto& th : threads) {
             if (th.joinable()) {
                 th.join();
             }
         }
-
-        *output_ = 
 
         return *this;
     }
@@ -164,10 +151,6 @@ class Tensor {
             data_->data_[i] = data_->data_[i] - scalar;
         }
 
-        for (int i = 0; i < grad_->size_; i++) {
-            grad_->data_[i] = grad_->data_[i] - 1;
-        }
-
         return *this;
     }
 
@@ -175,10 +158,6 @@ class Tensor {
         
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] * scalar;
-        }
-
-        for (int i = 0; i < grad_->size_; i++) {
-            grad_->data_[i] = grad_->data_[i] * scalar;
         }
 
         return *this;
@@ -191,16 +170,13 @@ class Tensor {
             data_->data_[i] = data_->data_[i] / scalar;
         }
 
-        for (int i = 0; i < grad_->size_; i++) {
-            grad_->data_[i] = grad_->data_[i] / scalar;
-        }
-
         return *this;
     }
 
 
     // ONLY WORKS FOR 1D AND 2D CURRENTLY
     // in place until we expand for CNN 3ds
+    // Matrix multiplication 
     Tensor operator*(const Tensor& other) const {
         Array<T>* data = this->data_;
         Array<T>* multData = other.data_;
@@ -247,6 +223,93 @@ class Tensor {
         return result;
     }
 
+    // Tensor addition 
+    Tensor<T>& operator+=(Tensor& other) {
+        // check if the shapes are the same
+        if (shape_ != other.shape_) {
+            cout << "Error: Incompatible shapes for addition!" << endl;
+            cout << "Shape of tensor A: ";
+            for (int i = 0; i < shape_.size(); i++) {
+                cout << shape_[i] << " ";
+            }
+            cout << endl;
+            cout << "Shape of tensor B: ";
+            for (int i = 0; i < other.shape_.size(); i++) {
+                cout << other.shape_[i] << " ";
+            }
+            cout << endl;
+            exit(EXIT_FAILURE);
+        }
+
+        int numThreads = 16;
+        int chunkSize = (data_->size_ + numThreads - 1) / numThreads;
+        std::vector<std::thread> threads(numThreads * 2);
+
+        prev_ = new Array<T>(this->data_);
+
+        for (int t = 0; t < numThreads; ++t) {
+            int startIdx = t * chunkSize;
+            int endIdx = std::min(startIdx + chunkSize, data_->size_);
+
+            threads[t] = std::thread([this, startIdx, endIdx, other]() {
+                for (int i = startIdx; i < endIdx; ++i) {
+                    this->data_->data_[i] = this->data_->data_[i] + other.data_->data_[i];
+                }
+            });
+        }
+
+        for (auto& th : threads) {
+            if (th.joinable()) {
+                th.join();
+            }
+        }
+
+        return *this;
+    }
+
+    // Tensor subtraction 
+    Tensor<T>& operator-=(Tensor& other) {
+        // check if the shapes are the same
+        if (shape_ != other.shape_) {
+            cout << "Error: Incompatible shapes for addition!" << endl;
+            cout << "Shape of tensor A: ";
+            for (int i = 0; i < shape_.size(); i++) {
+                cout << shape_[i] << " ";
+            }
+            cout << endl;
+            cout << "Shape of tensor B: ";
+            for (int i = 0; i < other.shape_.size(); i++) {
+                cout << other.shape_[i] << " ";
+            }
+            cout << endl;
+            exit(EXIT_FAILURE);
+        }
+
+        int numThreads = 16;
+        int chunkSize = (data_->size_ + numThreads - 1) / numThreads;
+        std::vector<std::thread> threads(numThreads * 2);
+
+        prev_ = new Array<T>(this->data_);
+
+        for (int t = 0; t < numThreads; ++t) {
+            int startIdx = t * chunkSize;
+            int endIdx = std::min(startIdx + chunkSize, data_->size_);
+
+            threads[t] = std::thread([this, startIdx, endIdx, other]() {
+                for (int i = startIdx; i < endIdx; ++i) {
+                    this->data_->data_[i] = this->data_->data_[i] - other.data_->data_[i];
+                }
+            });
+        }
+
+        for (auto& th : threads) {
+            if (th.joinable()) {
+                th.join();
+            }
+        }
+
+        return *this;
+    }
 
     T operator[] (vector<int> indicies) {
         if (indicies.size() != shape_.size()) {

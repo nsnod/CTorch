@@ -32,17 +32,20 @@ if(BUILD_TESTING)
     )
     FetchContent_MakeAvailable(googletest)
 
-    add_executable(tensorTests tests/tensorTests.cpp)
-    add_executable(arrayTests tests/arrayTests.cpp)
+    add_executable(tensor_test tests/tensor_test.cpp)
+    add_executable(array_test tests/array_test.cpp)
     add_executable(linear_test tests/linear_test.cpp)
+    add_executable(gradient_test tests/gradient_test.cpp)
 
-    target_link_libraries(tensorTests gtest gtest_main)
-    target_link_libraries(arrayTests gtest gtest_main)
+    target_link_libraries(tensor_test gtest gtest_main)
+    target_link_libraries(array_test gtest gtest_main)
     target_link_libraries(linear_test gtest gtest_main)
+    target_link_libraries(gradient_test gtest gtest_main)
 
 
-    add_test(NAME TensorTests COMMAND tensorTests)
-    add_test(NAME ArrayTests COMMAND arrayTest)
-    add_test(NAME LinearTest COMMAND linearTest)
+    add_test(NAME tensor_test COMMAND tensor_test)
+    add_test(NAME array_test COMMAND array_test)
+    add_test(NAME linear_test COMMAND linear_test)
+    add_test(NAME gradient_test COMMAND gradient_test)
 
 endif()
