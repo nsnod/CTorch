@@ -10,6 +10,10 @@ class Tensor {
  public:
     Array<T>* data_;
     Array<T>* grad_;
+    /*
+        TODO prev_ NEEDS TO BE 3D TO CONTAIN LIST OF PREV RESULTS
+        every time an oepration is done the previous reuslt should be stored in the correct index
+    */
     Array<T>* prev_; // for storing the previous values of the tensor before an operation 
     vector<int> shape_;
 
@@ -117,6 +121,13 @@ class Tensor {
             grad_->print();
         }
         cout << endl;
+        cout << "prev" << endl;
+        if (prev_ == nullptr) {
+            cout << "Prev has not been set for this tensor yet." << endl;
+        } else {
+            prev_->print();
+        }
+        cout << endl;
     }
 
     Tensor<T>& operator+=(T scalar) {
@@ -147,6 +158,8 @@ class Tensor {
     }
 
     Tensor<T>& operator-=(T scalar) {
+        prev_ = new Array<T>(this->data_);
+
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] - scalar;
         }
@@ -155,7 +168,8 @@ class Tensor {
     }
 
     Tensor<T>& operator*=(T scalar) {
-        
+        prev_ = new Array<T>(this->data_);
+
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] * scalar;
         }
@@ -165,7 +179,8 @@ class Tensor {
 
 
     Tensor<T>& operator/=(T scalar) {
-        
+        prev_ = new Array<T>(this->data_);
+
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] / scalar;
         }
@@ -177,13 +192,15 @@ class Tensor {
     // ONLY WORKS FOR 1D AND 2D CURRENTLY
     // in place until we expand for CNN 3ds
     // Matrix multiplication 
-    Tensor operator*(const Tensor& other) const {
+    Tensor operator*(const Tensor& other) {
         Array<T>* data = this->data_;
         Array<T>* multData = other.data_;
 
         vector<int> dataShape = data_->shape_;
         vector<int> multShape = other.data_->shape_;
         vector<int> outputShape;
+
+        prev_ = new Array<T>(this->data_);
 
         if (dataShape.size() != 2 || multShape.size() != 2) {
             cout << "Error: Multiplication only supports 2D tensors!" << endl;

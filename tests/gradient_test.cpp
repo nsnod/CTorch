@@ -19,10 +19,12 @@ int main(int argc, char **argv) {
     test += 1;
     test2 += 3;
     test += test2;
+    cout << "Expect 4" << endl;
     test.print_tensor();
 
     test.prev_->print();
     test -= 2;
+    cout << "Expect 2" << endl;
     test.print_tensor();
 
     ::testing::InitGoogleTest(&argc, argv);
