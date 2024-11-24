@@ -13,6 +13,11 @@ TEST(ExampleTest, OneIsOne) {
 
 int main(int argc, char **argv) {
     Tensor<float> test({3});
+    Tensor<float> test2({3});
+
+    test.prev_.print()
+    test += test2;
+    test.prev_.print()
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

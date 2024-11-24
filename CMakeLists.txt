@@ -8,11 +8,7 @@ include_directories(src)
 
 set(SOURCES
     main.cpp
-<<<<<<< HEAD
-    src/tensor.cpp
-=======
-    src/linear.cpp
->>>>>>> main
+    src/gradients.cpp
 )
 
 set(HEADERS

@@ -10,23 +10,26 @@ class Tensor {
  public:
     Array<T>* data_;
     Array<T>* grad_;
+    Array<T>* prev_; // for storing the previous values of the tensor before an operation 
     vector<int> shape_;
 
-    Tensor() : shape_({}), data_(nullptr), grad_(nullptr) {}
+    Tensor() : shape_({}), data_(nullptr), grad_(nullptr), prev_(nullptr) {}
 
-    Tensor(vector<int> shape) : shape_(shape), data_(nullptr), grad_(nullptr) {
+    Tensor(vector<int> shape) : shape_(shape), data_(nullptr), grad_(nullptr), prev_(nullptr) {
         if (shape.size() == 1) {
             shape.push_back(1);  
         } 
         shape_ = shape;
         data_ = new Array<T>(shape_);
         grad_ = new Array<T>(shape_);
+        prev_ = new Array<T>({3});    // default as 3 for now // should contain the previous values of the tensor 
     }
 
     Tensor(const Tensor& other) {
         shape_ = other.shape_;
         data_ = new Array<T>(*other.data_);
         grad_ = new Array<T>(*other.grad_);
+        prev_ = new Array<T>(*other.prev_);
     }
 
     Tensor& operator=(const Tensor& other) {
@@ -36,6 +39,7 @@ class Tensor {
             shape_ = other.shape_;
             data_ = new Array<T>(*other.data_);
             grad_ = new Array<T>(*other.grad_);
+            prev_ = new Array<T>(*other.prev_);
         }
         return *this;
     }
@@ -43,6 +47,7 @@ class Tensor {
     ~Tensor() {
         delete data_;
         delete grad_;
+        delete prev_;
     }
 
     // Functions 
@@ -116,9 +121,10 @@ class Tensor {
 
     Tensor<T>& operator+=(T scalar) {
         int numThreads = 16;
-
         int chunkSize = (data_->size_ + numThreads - 1) / numThreads;
         std::vector<std::thread> threads(numThreads * 2);
+
+        prev_ = new Array<T>(this->data_);
 
         for (int t = 0; t < numThreads; ++t) {
             int startIdx = t * chunkSize;
@@ -147,6 +153,8 @@ class Tensor {
                 th.join();
             }
         }
+
+        *output_ = 
 
         return *this;
     }
@@ -257,12 +265,5 @@ class Tensor {
 
         return data_->at(indicies);
 
-    }
-
-    // Gradient Calculations 
-    void relu_backward(Tensor<T> &output) {
-        for(int i = 0; i < output.size(); i++){
-            grad_->setData(i, output.getData()->getData()[i] > 0 ? output.getGrad()->getData()[i] : 0);
-        }
     }
 };

@@ -39,6 +39,21 @@ public:
         calcStrides();  
     }
 
+    // Decopy constructor
+    Array(const Array* other) {
+        for (int i = 0; i < other->shape_.size(); i++) {
+            shape_.push_back(other->shape_[i]);
+        }
+        for (int i = 0; i < other->data_.size(); i++) {
+            data_.push_back(other->data_[i]);
+        }
+        for (int i = 0; i < other->strides_.size(); i++) {
+            strides_.push_back(other->strides_[i]);
+        }
+        dimension_ = other->dimension_;
+        size_ = other->size_;
+    }
+
     // Destructor
     ~Array() {}
 
