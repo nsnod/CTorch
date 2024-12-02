@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     test1.reshape({3,1});
 
     test1.randomize_tensor(-1, 1);
-    test1.print_tensor();
+    //test1.print_tensor();
 
     // Tensor<float> test2({1,10});
 
@@ -26,6 +26,8 @@ int main(int argc, char **argv) {
     // Tensor<float> test3 = test1 * test2;
 
     // test3.print_tensor();
+
+    Tensor<float> test2 = softmax(&test1);
 
     cout << "This is the value at (1, 3) is " << test1[{2,0}] << endl;
 

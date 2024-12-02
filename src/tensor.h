@@ -346,4 +346,31 @@ class Tensor {
         return data_->at(indicies);
 
     }
+
+    Tensor softmax(Tensor* inp){
+        Tensor* t = new Tensor(inp->shape_);
+
+        for(int b = 0; b < t->shape_[0]; b++){
+            float denominator = 0.0f;
+
+            for(int c = 0; c < t->shape_[1]; c++){
+                float exp_val = expf(t->data_->data_[b][c]);
+                denominator += exp_val;
+            }
+
+            for(int c = 0; c < t->shape_[1]; c++){
+                t->data_->data_[b][c] /=denominator;
+            }
+ 
+        }        
+
+        return *t;
+
+    }
+
+    void softmax_backward(Tensor* out){
+
+
+        return {}
+    }
 };
