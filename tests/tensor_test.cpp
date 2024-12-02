@@ -27,7 +27,8 @@ int main(int argc, char **argv) {
 
     // test3.print_tensor();
 
-    Tensor<float> test2 = softmax(&test1);
+    
+
 
     cout << "This is the value at (1, 3) is " << test1[{2,0}] << endl;
 

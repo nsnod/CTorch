@@ -347,30 +347,77 @@ class Tensor {
 
     }
 
-    Tensor softmax(Tensor* inp){
-        Tensor* t = new Tensor(inp->shape_);
-
-        for(int b = 0; b < t->shape_[0]; b++){
-            float denominator = 0.0f;
-
-            for(int c = 0; c < t->shape_[1]; c++){
-                float exp_val = expf(t->data_->data_[b][c]);
-                denominator += exp_val;
-            }
-
-            for(int c = 0; c < t->shape_[1]; c++){
-                t->data_->data_[b][c] /=denominator;
-            }
- 
-        }        
-
-        return *t;
-
+    Tensor softmax(Tensor* inp) {
+    // Ensure the input tensor is 2D
+    if (inp->shape_.size() != 2) {
+        return 1;
     }
 
-    void softmax_backward(Tensor* out){
+    // Create a new tensor for the result
+    Tensor result(inp->shape_);
+    int batch_size = inp->shape_[0];
+    int num_classes = inp->shape_[1];
 
+    for (int b = 0; b < batch_size; b++) {
+        float denominator = 0.0f;
 
-        return {}
+        // Calculate the denominator (sum of exponentials)
+        for (int c = 0; c < num_classes; c++) {
+            vector<int> index = {b, c};
+            float exp_val = expf(inp->data_->at(index));
+            denominator += exp_val;
+            result.data_->at(index) = exp_val; // Temporarily store numerator (e^x)
+        }
+
+        // Normalize each class score
+        for (int c = 0; c < num_classes; c++) {
+            vector<int> index = {b, c};
+            result.data_->at(index) /= denominator;
+        }
     }
+
+    return result;
+}
+
+
+    void softmax_backward(Tensor* output, Tensor* grad_output, Tensor* grad_input) {
+    // Ensure the tensors have the same shape
+    if (output->shape_ != grad_output->shape_) {
+        cout << "Error: Shapes of output and grad_output must match!" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    if (grad_input->shape_ != output->shape_) {
+        cout << "Error: Shape of grad_input must match output!" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    int batch_size = output->shape_[0];
+    int num_classes = output->shape_[1];
+
+    for (int b = 0; b < batch_size; b++) {
+        for (int i = 0; i < num_classes; i++) {
+            float grad_sum = 0.0f;
+
+            for (int j = 0; j < num_classes; j++) {
+                vector<int> idx_i = {b, i};
+                vector<int> idx_j = {b, j};
+
+                float softmax_i = output->data_->at(idx_i);
+                float softmax_j = output->data_->at(idx_j);
+
+                // Derivative of softmax
+                if (i == j) {
+                    grad_sum += grad_output->data_->at(idx_j) * softmax_i * (1 - softmax_i);
+                } else {
+                    grad_sum += grad_output->data_->at(idx_j) * (-softmax_i * softmax_j);
+                }
+            }
+
+            vector<int> idx_i = {b, i};
+            grad_input->data_->at(idx_i) = grad_sum;
+        }
+    }
+}
+
 };
