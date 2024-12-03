@@ -347,77 +347,79 @@ class Tensor {
 
     }
 
-    Tensor softmax(Tensor* inp) {
-    // Ensure the input tensor is 2D
-    if (inp->shape_.size() != 2) {
-        return 1;
-    }
-
-    // Create a new tensor for the result
-    Tensor result(inp->shape_);
-    int batch_size = inp->shape_[0];
-    int num_classes = inp->shape_[1];
-
-    for (int b = 0; b < batch_size; b++) {
-        float denominator = 0.0f;
-
-        // Calculate the denominator (sum of exponentials)
-        for (int c = 0; c < num_classes; c++) {
-            vector<int> index = {b, c};
-            float exp_val = expf(inp->data_->at(index));
-            denominator += exp_val;
-            result.data_->at(index) = exp_val; // Temporarily store numerator (e^x)
+    template <typename T = float>
+    Tensor<T> softmax(Tensor<T>* inp){
+        if (inp->shape_.size() != 2) {
+            std::cout << "Must be a 2D tensor" << std::endl;
+            exit(EXIT_FAILURE);
         }
 
-        // Normalize each class score
-        for (int c = 0; c < num_classes; c++) {
-            vector<int> index = {b, c};
-            result.data_->at(index) /= denominator;
-        }
-    }
+        int batch_size = inp->shape_[0];
+        int num_classes = inp->shape_[1];
 
-    return result;
+        Tensor<T>* t = new Tensor<T>(inp->shape_);
+
+        for (int i = 0; i < batch_size; i++) {
+            // Find the max value in the row for numerical stability
+            T maxVal = inp->data_->at({i, 0});
+            for (int j = 1; j < num_classes; j++) {
+            T val = inp->data_->at({i, j});
+            if (val > maxVal) {
+            maxVal = val;
+            }
+        }
+
+        // Compute exponentials and sum
+        std::vector<T> exp_values(num_classes);
+        T sum_exp = 0;
+        for (int j = 0; j < num_classes; j++) {
+            T exp_val = std::exp(inp->data_->at({i, j}) - maxVal);
+            exp_values[j] = exp_val;
+            sum_exp += exp_val;
+        }
+
+        // Compute softmax
+        for (int j = 0; j < num_classes; j++) {
+            t->data_->at({i, j}) = exp_values[j] / sum_exp;
+        }
+        }
+
+    return *t;
 }
 
 
-    void softmax_backward(Tensor* output, Tensor* grad_output, Tensor* grad_input) {
-    // Ensure the tensors have the same shape
-    if (output->shape_ != grad_output->shape_) {
-        cout << "Error: Shapes of output and grad_output must match!" << endl;
-        exit(EXIT_FAILURE);
-    }
+    template <typename T = float>
+    void softmax_backward(Tensor<T>* inp, Tensor<T>* out) {
+        if (inp->shape_.size() != 2) {
+            std::cout << "Must be a 2D tensor" << std::endl;
+            exit(EXIT_FAILURE);
+        }
 
-    if (grad_input->shape_ != output->shape_) {
-        cout << "Error: Shape of grad_input must match output!" << endl;
-        exit(EXIT_FAILURE);
-    }
+        int batch_size = inp->shape_[0];
+        int num_classes = inp->shape_[1];
 
-    int batch_size = output->shape_[0];
-    int num_classes = output->shape_[1];
+        // Initialize grad_ of inp if not already initialized
+        if (inp->grad_ == nullptr) {
+            inp->grad_ = new Array<T>(inp->shape_);
+        }
 
-    for (int b = 0; b < batch_size; b++) {
-        for (int i = 0; i < num_classes; i++) {
-            float grad_sum = 0.0f;
-
+        for (int i = 0; i < batch_size; i++) {
+            // Compute dot product of grad_s and s
+            T dot = 0;
             for (int j = 0; j < num_classes; j++) {
-                vector<int> idx_i = {b, i};
-                vector<int> idx_j = {b, j};
-
-                float softmax_i = output->data_->at(idx_i);
-                float softmax_j = output->data_->at(idx_j);
-
-                // Derivative of softmax
-                if (i == j) {
-                    grad_sum += grad_output->data_->at(idx_j) * softmax_i * (1 - softmax_i);
-                } else {
-                    grad_sum += grad_output->data_->at(idx_j) * (-softmax_i * softmax_j);
-                }
+                T grad_sj = out->grad_->at({i, j});
+                T sj = out->data_->at({i, j});
+                dot += grad_sj * sj;
             }
 
-            vector<int> idx_i = {b, i};
-            grad_input->data_->at(idx_i) = grad_sum;
-        }
+        // Compute gradient with respect to the input
+            for (int k = 0; k < num_classes; k++) {
+                T sk = out->data_->at({i, k});
+                T grad_sk = out->grad_->at({i, k});
+                inp->grad_->at({i, k}) = sk * (grad_sk - dot);
+            }
     }
 }
+
 
 };
