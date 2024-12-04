@@ -17,5 +17,8 @@ Turn the testing option in CMakeLists.txt OFF or ON if you want to run the tests
 > ./build.sh
 
 
-run output files via
+Run output files via
 >./build/OUTPUTFILENAME
+
+Our tensors functions are inherently parallel so when running parallel code use the mpi run function.
+>mpirun -np (# of processes) ./build/OUTPUTFILENAME

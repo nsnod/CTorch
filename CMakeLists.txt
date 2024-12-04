@@ -17,7 +17,12 @@ set(HEADERS
     src/tensor.h
 )
 
+find_package(MPI REQUIRED)
+include_directories(${MPI_INCLUDE_PATH})
+
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+target_link_libraries(${PROJECT_NAME} ${MPI_LIBRARIES})
 
 option(BUILD_TESTING "Enable testing" OFF)
 
@@ -35,11 +40,10 @@ if(BUILD_TESTING)
     add_executable(tensorTests tests/tensorTests.cpp)
     add_executable(arrayTests tests/arrayTests.cpp)
 
-    target_link_libraries(tensorTests gtest gtest_main)
-    target_link_libraries(arrayTests gtest gtest_main)
-
+    target_link_libraries(tensorTests gtest gtest_main ${MPI_LIBRARIES})
+    target_link_libraries(arrayTests gtest gtest_main ${MPI_LIBRARIES})
 
     add_test(NAME TensorTests COMMAND tensorTests)
-    add_test(NAME ArrayTests COMMAND arrayTest)
+    add_test(NAME ArrayTests COMMAND arrayTests)
 
 endif()
