@@ -1,36 +1,66 @@
+#include <mpi.h>
 #include <gtest/gtest.h>
+#include <chrono>
 #include "../src/tensor.h"
 
-int test1() {
-    std::cout << "test" << std::endl;
-    return 1;
-}
+int main(int argc, char** argv) {
+    MPI_Init(&argc, &argv);
 
-TEST(ExampleTest, OneIsOne) {
-    int result = test1();
-    EXPECT_EQ(result, 1) << "Expected result to be 1, but got " << result;
-}
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-int main(int argc, char **argv) {
+    Tensor<float> tensorA({4, 4});
+    Tensor<float> tensorB({4, 4});
 
-    Tensor<float> test1;
-    test1.reShape({3,1});
+    //only use ONE tensor across all different processes
+    if (rank == 0) {
+        tensorA.randomize_tensor(-1.0, 1.0);
+        tensorB.randomize_tensor(-1.0, 1.0);
+    }
 
-    test1.randomize_tensor(-1, 1);
-    test1.print_tensor();
+    //ensure all instances have the same base tensor
+    MPI_Bcast(tensorA.data_->data_.data(), tensorA.data_->size_, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(tensorB.data_->data_.data(), tensorB.data_->size_, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(tensorA.grad_->data_.data(), tensorA.grad_->size_, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(tensorB.grad_->data_.data(), tensorB.grad_->size_, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-    // Tensor<float> test2({1,10});
+    if (rank == 0) {
+        //original tensor check
+        std::cout << "Tensor A:" << std::endl;
+        tensorA.print_tensor();
+        std::cout << "Tensor B:" << std::endl;
+        tensorB.print_tensor();
 
-    // test2.print_tensor();
+        auto startNonMPI = std::chrono::high_resolution_clock::now();
+        Tensor<float> resultNonMPI = tensorA.non_parallel_tensor_mult_test(tensorB);
+        auto endNonMPI = std::chrono::high_resolution_clock::now();
 
-    // Tensor<float> test3 = test1 * test2;
+        std::cout << "Non-MPI Time: " 
+                  << std::chrono::duration<double>(endNonMPI - startNonMPI).count() 
+                  << " seconds" << std::endl;
 
-    // test3.print_tensor();
+        std::cout << "Non-MPI Result:" << std::endl;
+        resultNonMPI.print_tensor();
+    }
 
-    cout << "This is the value at (1, 3) is " << test1[{2,0}] << endl;
+    // sync up
+    MPI_Barrier(MPI_COMM_WORLD);
 
+    // MPI Test
+    auto startMPI = std::chrono::high_resolution_clock::now();
+    Tensor<float> resultMPI = tensorA * tensorB;
+    auto endMPI = std::chrono::high_resolution_clock::now();
 
+    if (rank == 0) {
+        std::cout << "MPI Time: " 
+                  << std::chrono::duration<double>(endMPI - startMPI).count() 
+                  << " seconds" << std::endl;
 
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+        std::cout << "MPI Result:" << std::endl;
+        resultMPI.print_tensor();
+    }
+
+    MPI_Finalize();
+    return 0;
 }

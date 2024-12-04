@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mpi.h>
 #include "array.h"
 #include <pthread.h>
 #include <thread>
@@ -198,6 +199,74 @@ class Tensor {
         Array<T>* multData = other.data_;
 
         vector<int> dataShape = data_->shape_;
+        vector<int> multShape = multData->shape_;
+        vector<int> outputShape;
+
+        
+        if (dataShape.size() != 2 || multShape.size() != 2) {
+            cout << "Error: Multiplication only supports 2D tensors!" << endl;
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+        }
+
+        if (dataShape[1] != multShape[0]) {
+            cout << "Error: Incompatible shapes for multiplication!" << endl;
+            cout << "Shape of tensor A: (" << dataShape[0] << ", " << dataShape[1] << ")" << endl;
+            cout << "Shape of tensor B: (" << multShape[0] << ", " << multShape[1] << ")" << endl;
+            MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+        }
+
+        outputShape.push_back(dataShape[0]);
+        outputShape.push_back(multShape[1]);
+
+        Array<T>* output = new Array<T>(outputShape);
+
+        // MPI CODE
+        int rank, size;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+        int rowsPerProcess = dataShape[0] / size;
+        int extraRows = dataShape[0] % size;
+
+        int startRow = rank * rowsPerProcess + min(rank, extraRows);
+        int endRow = startRow + rowsPerProcess + (rank < extraRows ? 1 : 0);
+
+        for (int i = startRow; i < endRow; i++) {
+            for (int j = 0; j < multShape[1]; j++) {
+                T sum = 0;
+                for (int k = 0; k < dataShape[1]; k++) {
+                    vector<int> indexA = {i, k};
+                    vector<int> indexB = {k, j};
+                    sum += data->at(indexA) * multData->at(indexB);
+                }
+                vector<int> indexOutput = {i, j};
+                output->at(indexOutput) = sum;
+            }
+        }
+
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Allreduce(
+            MPI_IN_PLACE,
+            output->data_.data(), 
+            output->size_,        
+            std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE, // ensures it works for float and doubles. This might need to be changed later
+            MPI_SUM,
+            MPI_COMM_WORLD
+        );
+
+        Tensor<T> result;
+        result.shape_ = outputShape;
+        result.data_ = output;
+        result.grad_ = nullptr;
+
+        return result;
+    }
+
+    Tensor<T> non_parallel_tensor_mult_test(const Tensor<T>& other) const {
+        Array<T>* data = this->data_;
+        Array<T>* multData = other.data_;
+
+        vector<int> dataShape = data_->shape_;
         vector<int> multShape = other.data_->shape_;
         vector<int> outputShape;
 
@@ -214,7 +283,7 @@ class Tensor {
         }
 
         outputShape.push_back(dataShape[0]);
-        outputShape.push_back(multShape[1]); 
+        outputShape.push_back(multShape[1]);
 
         Array<T>* output = new Array<T>(outputShape);
 
@@ -238,7 +307,6 @@ class Tensor {
 
         return result;
     }
-
 
     T operator[] (vector<int> indicies) {
         if (indicies.size() != shape_.size()) {
