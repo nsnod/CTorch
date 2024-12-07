@@ -15,14 +15,14 @@ int main(int argc, char **argv) {
     Tensor<float> test({3, 4});
     Tensor<float> test2({3, 4});
 
-    test.prev_->print();
+    (*test.prev_)[0]->print();
     test += 1;
     test2 += 3;
     test += test2;
     cout << "Expect 4" << endl;
     test.print_tensor();
 
-    test.prev_->print();
+    (*test.prev_)[1]->print();    
     test -= 2;
     cout << "Expect 2" << endl;
     test.print_tensor();

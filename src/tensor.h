@@ -14,7 +14,7 @@ class Tensor {
         TODO prev_ NEEDS TO BE 3D TO CONTAIN LIST OF PREV RESULTS
         every time an oepration is done the previous reuslt should be stored in the correct index
     */
-    Array<T>* prev_; // for storing the previous values of the tensor before an operation 
+    vector<Array<T>*>* prev_; // for storing the previous values of the tensor before an operation 
     vector<int> shape_;
 
     Tensor() : shape_({}), data_(nullptr), grad_(nullptr), prev_(nullptr) {}
@@ -26,14 +26,14 @@ class Tensor {
         shape_ = shape;
         data_ = new Array<T>(shape_);
         grad_ = new Array<T>(shape_);
-        prev_ = new Array<T>({3});    // default as 3 for now // should contain the previous values of the tensor 
+        prev_ = new vector<Array<T>*>(3); // default allocate 3 // should contain the previous values used to create the tensor if any
     }
 
     Tensor(const Tensor& other) {
         shape_ = other.shape_;
         data_ = new Array<T>(*other.data_);
         grad_ = new Array<T>(*other.grad_);
-        prev_ = new Array<T>(*other.prev_);
+        prev_ = other.prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
     }
 
     Tensor& operator=(const Tensor& other) {
@@ -43,7 +43,8 @@ class Tensor {
             shape_ = other.shape_;
             data_ = new Array<T>(*other.data_);
             grad_ = new Array<T>(*other.grad_);
-            prev_ = new Array<T>(*other.prev_);
+            prev_ = other.prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
+
         }
         return *this;
     }
@@ -125,7 +126,9 @@ class Tensor {
         if (prev_ == nullptr) {
             cout << "Prev has not been set for this tensor yet." << endl;
         } else {
-            prev_->print();
+            for(int i = 0; i < prev_->size(); i++){
+                prev_->at(i)->print();
+            }
         }
         cout << endl;
     }
@@ -134,8 +137,6 @@ class Tensor {
         int numThreads = 16;
         int chunkSize = (data_->size_ + numThreads - 1) / numThreads;
         std::vector<std::thread> threads(numThreads * 2);
-
-        prev_ = new Array<T>(this->data_);
 
         for (int t = 0; t < numThreads; ++t) {
             int startIdx = t * chunkSize;
@@ -158,8 +159,7 @@ class Tensor {
     }
 
     Tensor<T>& operator-=(T scalar) {
-        prev_ = new Array<T>(this->data_);
-
+        
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] - scalar;
         }
@@ -168,7 +168,6 @@ class Tensor {
     }
 
     Tensor<T>& operator*=(T scalar) {
-        prev_ = new Array<T>(this->data_);
 
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] * scalar;
@@ -179,7 +178,6 @@ class Tensor {
 
 
     Tensor<T>& operator/=(T scalar) {
-        prev_ = new Array<T>(this->data_);
 
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] / scalar;
@@ -200,7 +198,8 @@ class Tensor {
         vector<int> multShape = other.data_->shape_;
         vector<int> outputShape;
 
-        prev_ = new Array<T>(this->data_);
+        (*prev_)[0] = this->data_;
+        (*prev_)[1] = other.data_;
 
         if (dataShape.size() != 2 || multShape.size() != 2) {
             cout << "Error: Multiplication only supports 2D tensors!" << endl;
@@ -262,7 +261,8 @@ class Tensor {
         int chunkSize = (data_->size_ + numThreads - 1) / numThreads;
         std::vector<std::thread> threads(numThreads * 2);
 
-        prev_ = new Array<T>(this->data_);
+        (*prev_)[0] = this->data_;
+        (*prev_)[1] = other.data_;
 
         for (int t = 0; t < numThreads; ++t) {
             int startIdx = t * chunkSize;
@@ -306,7 +306,8 @@ class Tensor {
         int chunkSize = (data_->size_ + numThreads - 1) / numThreads;
         std::vector<std::thread> threads(numThreads * 2);
 
-        prev_ = new Array<T>(this->data_);
+        (*prev_)[0] = this->data_;
+        (*prev_)[1] = other.data_;
 
         for (int t = 0; t < numThreads; ++t) {
             int startIdx = t * chunkSize;
@@ -344,82 +345,6 @@ class Tensor {
         }
 
         return data_->at(indicies);
-
     }
-
-    template <typename T = float>
-    Tensor<T> softmax(Tensor<T>* inp){
-        if (inp->shape_.size() != 2) {
-            std::cout << "Must be a 2D tensor" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-
-        int batch_size = inp->shape_[0];
-        int num_classes = inp->shape_[1];
-
-        Tensor<T>* t = new Tensor<T>(inp->shape_);
-
-        for (int i = 0; i < batch_size; i++) {
-            // Find the max value in the row for numerical stability
-            T maxVal = inp->data_->at({i, 0});
-            for (int j = 1; j < num_classes; j++) {
-            T val = inp->data_->at({i, j});
-            if (val > maxVal) {
-            maxVal = val;
-            }
-        }
-
-        // Compute exponentials and sum
-        std::vector<T> exp_values(num_classes);
-        T sum_exp = 0;
-        for (int j = 0; j < num_classes; j++) {
-            T exp_val = std::exp(inp->data_->at({i, j}) - maxVal);
-            exp_values[j] = exp_val;
-            sum_exp += exp_val;
-        }
-
-        // Compute softmax
-        for (int j = 0; j < num_classes; j++) {
-            t->data_->at({i, j}) = exp_values[j] / sum_exp;
-        }
-        }
-
-    return *t;
-}
-
-
-    template <typename T = float>
-    void softmax_backward(Tensor<T>* inp, Tensor<T>* out) {
-        if (inp->shape_.size() != 2) {
-            std::cout << "Must be a 2D tensor" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-
-        int batch_size = inp->shape_[0];
-        int num_classes = inp->shape_[1];
-
-        // Initialize grad_ of inp if not already initialized
-        if (inp->grad_ == nullptr) {
-            inp->grad_ = new Array<T>(inp->shape_);
-        }
-
-        for (int i = 0; i < batch_size; i++) {
-            // Compute dot product of grad_s and s
-            T dot = 0;
-            for (int j = 0; j < num_classes; j++) {
-                T grad_sj = out->grad_->at({i, j});
-                T sj = out->data_->at({i, j});
-                dot += grad_sj * sj;
-            }
-
-        // Compute gradient with respect to the input
-            for (int k = 0; k < num_classes; k++) {
-                T sk = out->data_->at({i, k});
-                T grad_sk = out->grad_->at({i, k});
-                inp->grad_->at({i, k}) = sk * (grad_sk - dot);
-            }
-    }
-}
-
 
 };
