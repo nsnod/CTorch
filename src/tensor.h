@@ -1,6 +1,6 @@
 #pragma once
-
 #include <mpi.h>
+#include <vector>
 #include "array.h"
 #include <pthread.h>
 #include <thread>
@@ -115,44 +115,44 @@ class Tensor {
         cout << endl;
     }
 
-    Tensor<T>& operator+=(T scalar) {
-        int numThreads = 16;
-
-        int chunkSize = (data_->size_ + numThreads - 1) / numThreads;
-        std::vector<std::thread> threads(numThreads * 2);
-
-        for (int t = 0; t < numThreads; ++t) {
-            int startIdx = t * chunkSize;
-            int endIdx = std::min(startIdx + chunkSize, data_->size_);
-
-            threads[t] = std::thread([this, startIdx, endIdx, scalar]() {
-                for (int i = startIdx; i < endIdx; ++i) {
-                    this->data_->data_[i] = this->data_->data_[i] + scalar;
-                }
-            });
+    Tensor<T>& tensorAdd(T scalar) {
+        for (int i = 0; i < data_->size_; i++) {
+            data_->data_[i] = data_->data_[i] + scalar;
         }
 
-        for (int t = 0; t < numThreads; ++t) {
-            int startIdx = t * chunkSize;
-            int endIdx = std::min(startIdx + chunkSize, grad_->size_);
-
-            threads[numThreads + t] = std::thread([this, startIdx, endIdx, scalar]() {
-                for (int i = startIdx; i < endIdx; ++i) {
-                    this->grad_->data_[i] = this->grad_->data_[i] + 1;
-                }
-            });
-        }
-
-        for (auto& th : threads) {
-            if (th.joinable()) {
-                th.join();
-            }
+        for (int i = 0; i < grad_->size_; i++) {
+            grad_->data_[i] = grad_->data_[i] + 1;
         }
 
         return *this;
     }
 
-    Tensor<T>& operator-=(T scalar) {
+    Tensor<T>& operator+(T scalar){
+        int rank, size;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+        int rowsPerProcess = data_->shape_[0] / size;
+        int extraRows = data_->shape_[0] % size;
+        int startRow = rank * rowsPerProcess + min(rank, extraRows);
+        int endRow = startRow + rowsPerProcess + (rank < extraRows ? 1 : 0);
+
+        for (int i = startRow; i < endRow; ++i) {
+            for (int j = 0; j < data_->shape_[1]; ++j) {
+                vector<int> index = {i, j};
+                data_->at(index) += scalar;
+            }
+        }
+
+        MPI_Allreduce(MPI_IN_PLACE, data_->data_.data(), data_->size_, 
+                    std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE,
+                    MPI_SUM, MPI_COMM_WORLD);
+
+        return *this;
+    }
+
+
+    Tensor<T>& tensorSub(T scalar) {
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] - scalar;
         }
@@ -164,8 +164,33 @@ class Tensor {
         return *this;
     }
 
-    Tensor<T>& operator*=(T scalar) {
-        
+    Tensor<T>& operator-(T scalar) {
+        int rank, size;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+        int rowsPerProcess = data_->shape_[0] / size;
+        int extraRows = data_->shape_[0] % size;
+        int startRow = rank * rowsPerProcess + min(rank, extraRows);
+        int endRow = startRow + rowsPerProcess + (rank < extraRows ? 1 : 0);
+
+        for (int i = startRow; i < endRow; ++i) {
+            for (int j = 0; j < data_->shape_[1]; ++j) {
+                vector<int> index = {i, j};
+                data_->at(index) -= scalar;
+            }
+        }
+
+        MPI_Allreduce(MPI_IN_PLACE, data_->data_.data(), data_->size_, 
+                    std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE,
+                    MPI_SUM, MPI_COMM_WORLD);
+
+        return *this;
+    }
+
+  
+
+    Tensor<T>& tensorScalarMult(T scalar) {
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] * scalar;
         }
@@ -177,8 +202,31 @@ class Tensor {
         return *this;
     }
 
+    Tensor<T>& operator*(T scalar) {
+        int rank, size;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    Tensor<T>& operator/=(T scalar) {
+        int rowsPerProcess = data_->shape_[0] / size;
+        int extraRows = data_->shape_[0] % size;
+        int startRow = rank * rowsPerProcess + min(rank, extraRows);
+        int endRow = startRow + rowsPerProcess + (rank < extraRows ? 1 : 0);
+
+        for (int i = startRow; i < endRow; ++i) {
+            for (int j = 0; j < data_->shape_[1]; ++j) {
+                vector<int> index = {i, j};
+                data_->at(index) *= scalar;
+            }
+        }
+
+        MPI_Allreduce(MPI_IN_PLACE, data_->data_.data(), data_->size_, 
+                    std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE,
+                    MPI_SUM, MPI_COMM_WORLD);
+
+        return *this;
+    }
+
+    Tensor<T>& tensorScalarDivide(T scalar) {
         
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] / scalar;
@@ -187,6 +235,30 @@ class Tensor {
         for (int i = 0; i < grad_->size_; i++) {
             grad_->data_[i] = grad_->data_[i] / scalar;
         }
+
+        return *this;
+    }
+
+    Tensor<T>& operator/(T scalar) {
+        int rank, size;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+        int rowsPerProcess = data_->shape_[0] / size;
+        int extraRows = data_->shape_[0] % size;
+        int startRow = rank * rowsPerProcess + min(rank, extraRows);
+        int endRow = startRow + rowsPerProcess + (rank < extraRows ? 1 : 0);
+
+        for (int i = startRow; i < endRow; ++i) {
+            for (int j = 0; j < data_->shape_[1]; ++j) {
+                vector<int> index = {i, j};
+                data_->at(index) /= scalar;
+            }
+        }
+
+        MPI_Allreduce(MPI_IN_PLACE, data_->data_.data(), data_->size_, 
+                    std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE,
+                    MPI_SUM, MPI_COMM_WORLD);
 
         return *this;
     }

@@ -10,7 +10,6 @@ int main () {
     tensor.randomize_tensor(0.0f, 1.0f);  // Randomize contents between 0 and 1
     tensor.print_tensor();
     
-    tensor += 3;
     tensor.print_tensor();                // Print tensor contents
 
     return 0;

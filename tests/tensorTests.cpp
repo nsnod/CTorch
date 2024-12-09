@@ -32,6 +32,7 @@ int main(int argc, char** argv) {
         std::cout << "Tensor B:" << std::endl;
         tensorB.print_tensor();
 
+
         auto startNonMPI = std::chrono::high_resolution_clock::now();
         Tensor<float> resultNonMPI = tensorA.non_parallel_tensor_mult_test(tensorB);
         auto endNonMPI = std::chrono::high_resolution_clock::now();
@@ -43,7 +44,6 @@ int main(int argc, char** argv) {
         std::cout << "Non-MPI Result:" << std::endl;
         resultNonMPI.print_tensor();
     }
-
     // sync up
     MPI_Barrier(MPI_COMM_WORLD);
 
