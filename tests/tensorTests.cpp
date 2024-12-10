@@ -10,27 +10,28 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    Tensor<float> tensorA({784, 16});
-    Tensor<float> tensorB({16, 784});
+    Tensor<float> tensorA({4, 4});
+    Tensor<float> tensorB({4, 4});
 
     //only use ONE tensor across all different processes
     if (rank == 0) {
         tensorA.randomize_tensor(-1.0, 1.0);
         tensorB.randomize_tensor(-1.0, 1.0);
     }
-
+    
     //ensure all instances have the same base tensor
     MPI_Bcast(tensorA.data_->data_.data(), tensorA.data_->size_, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MPI_Bcast(tensorB.data_->data_.data(), tensorB.data_->size_, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MPI_Bcast(tensorA.grad_->data_.data(), tensorA.grad_->size_, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MPI_Bcast(tensorB.grad_->data_.data(), tensorB.grad_->size_, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
+
     if (rank == 0) {
-        // // original tensor check
-        // std::cout << "Tensor A:" << std::endl;
-        // tensorA.print_tensor();
-        // std::cout << "Tensor B:" << std::endl;
-        // tensorB.print_tensor();
+        // original tensor check
+        std::cout << "Tensor A:" << std::endl;
+        tensorA.print_tensor();
+        std::cout << "Tensor B:" << std::endl;
+        tensorB.print_tensor();
 
 
         auto startNonMPI = std::chrono::high_resolution_clock::now();
