@@ -141,9 +141,10 @@ class Tensor {
             for (int j = 0; j < data_->shape_[1]; ++j) {
                 vector<int> index = {i, j};
                 data_->at(index) += scalar;
+                grad_->at(index) += 1;
             }
         }
-
+        MPI_Barrier(MPI_COMM_WORLD);
         MPI_Allreduce(MPI_IN_PLACE, data_->data_.data(), data_->size_, 
                     std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE,
                     MPI_SUM, MPI_COMM_WORLD);
@@ -178,9 +179,10 @@ class Tensor {
             for (int j = 0; j < data_->shape_[1]; ++j) {
                 vector<int> index = {i, j};
                 data_->at(index) -= scalar;
+                grad_->at(index) -= 1;
             }
         }
-
+        MPI_Barrier(MPI_COMM_WORLD);
         MPI_Allreduce(MPI_IN_PLACE, data_->data_.data(), data_->size_, 
                     std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE,
                     MPI_SUM, MPI_COMM_WORLD);
@@ -216,9 +218,10 @@ class Tensor {
             for (int j = 0; j < data_->shape_[1]; ++j) {
                 vector<int> index = {i, j};
                 data_->at(index) *= scalar;
+                grad_->at(index) *= scalar;
             }
         }
-
+        MPI_Barrier(MPI_COMM_WORLD);
         MPI_Allreduce(MPI_IN_PLACE, data_->data_.data(), data_->size_, 
                     std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE,
                     MPI_SUM, MPI_COMM_WORLD);
@@ -253,9 +256,12 @@ class Tensor {
             for (int j = 0; j < data_->shape_[1]; ++j) {
                 vector<int> index = {i, j};
                 data_->at(index) /= scalar;
+                grad_->at(index) /= scalar;
+                
             }
         }
 
+        MPI_Barrier(MPI_COMM_WORLD);
         MPI_Allreduce(MPI_IN_PLACE, data_->data_.data(), data_->size_, 
                     std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE,
                     MPI_SUM, MPI_COMM_WORLD);
@@ -266,13 +272,14 @@ class Tensor {
 
     // ONLY WORKS FOR 1D AND 2D CURRENTLY
     // in place until we expand for CNN 3ds
-    Tensor operator*(const Tensor& other) const {
+    Tensor<T>& operator*(const Tensor& other) {
         Array<T>* data = this->data_;
         Array<T>* multData = other.data_;
+        Array<T>* grad = this->grad_;
+        Array<T>* multGrad = other.grad_;
 
         vector<int> dataShape = data_->shape_;
         vector<int> multShape = multData->shape_;
-        vector<int> outputShape;
 
         
         if (dataShape.size() != 2 || multShape.size() != 2) {
@@ -287,11 +294,6 @@ class Tensor {
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
 
-        outputShape.push_back(dataShape[0]);
-        outputShape.push_back(multShape[1]);
-
-        Array<T>* output = new Array<T>(outputShape);
-
         // MPI CODE
         int rank, size;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -304,80 +306,95 @@ class Tensor {
         int endRow = startRow + rowsPerProcess + (rank < extraRows ? 1 : 0);
 
         for (int i = startRow; i < endRow; i++) {
+            vector<T> rowBuffer(multShape[1], 0);
+            vector<T> gradRowBuffer(multShape[1], 0);
             for (int j = 0; j < multShape[1]; j++) {
                 T sum = 0;
+                T gradientSum = 0;
                 for (int k = 0; k < dataShape[1]; k++) {
                     vector<int> indexA = {i, k};
                     vector<int> indexB = {k, j};
                     sum += data->at(indexA) * multData->at(indexB);
+
+                    //Gradient updates for in-place operation
+                    if (grad != nullptr && multGrad != nullptr) {
+                        gradientSum += grad->at(indexA) * multData->at(indexB);
+                    }
                 }
+                rowBuffer[j] = sum;
+                gradRowBuffer[j] = gradientSum;
+            }
+            for (int j = 0; j < multShape[1]; j++) {
                 vector<int> indexOutput = {i, j};
-                output->at(indexOutput) = sum;
+                data->at(indexOutput) = rowBuffer[j];
+                if (grad != nullptr) {
+                    grad->at(indexOutput) = gradRowBuffer[j];
+                }
             }
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
         MPI_Allreduce(
             MPI_IN_PLACE,
-            output->data_.data(), 
-            output->size_,        
+            data->data_.data(), 
+            data->size_,        
             std::is_same<T, float>::value ? MPI_FLOAT : MPI_DOUBLE, // ensures it works for float and doubles. This might need to be changed later
             MPI_SUM,
             MPI_COMM_WORLD
         );
 
-        Tensor<T> result;
-        result.shape_ = outputShape;
-        result.data_ = output;
-        result.grad_ = nullptr;
-
-        return result;
+        return *this;
     }
 
     Tensor<T> non_parallel_tensor_mult_test(const Tensor<T>& other) const {
         Array<T>* data = this->data_;
         Array<T>* multData = other.data_;
+        Array<T>* grad = this->grad_;
+        Array<T>* multGrad = other.grad_;
 
         vector<int> dataShape = data_->shape_;
-        vector<int> multShape = other.data_->shape_;
-        vector<int> outputShape;
+        vector<int> multShape = multData->shape_;
 
+        
         if (dataShape.size() != 2 || multShape.size() != 2) {
             cout << "Error: Multiplication only supports 2D tensors!" << endl;
-            exit(EXIT_FAILURE);
         }
 
         if (dataShape[1] != multShape[0]) {
             cout << "Error: Incompatible shapes for multiplication!" << endl;
             cout << "Shape of tensor A: (" << dataShape[0] << ", " << dataShape[1] << ")" << endl;
             cout << "Shape of tensor B: (" << multShape[0] << ", " << multShape[1] << ")" << endl;
-            exit(EXIT_FAILURE);
         }
 
-        outputShape.push_back(dataShape[0]);
-        outputShape.push_back(multShape[1]);
-
-        Array<T>* output = new Array<T>(outputShape);
-
-        for (int i = 0; i < dataShape[0]; i++) {       
-            for (int j = 0; j < multShape[1]; j++) {   
+        for (int i = 0; i < dataShape[0]; i++) {
+            vector<T> rowBuffer(multShape[1], 0);
+            vector<T> gradRowBuffer(multShape[1], 0);
+            for (int j = 0; j < multShape[1]; j++) {
                 T sum = 0;
-                for (int k = 0; k < dataShape[1]; k++) { 
+                T gradientSum = 0;
+                for (int k = 0; k < dataShape[1]; k++) {
                     vector<int> indexA = {i, k};
                     vector<int> indexB = {k, j};
                     sum += data->at(indexA) * multData->at(indexB);
+
+                    //Gradient updates for in-place operation
+                    if (grad != nullptr && multGrad != nullptr) {
+                        gradientSum += grad->at(indexA) * multData->at(indexB);
+                    }
                 }
+                rowBuffer[j] = sum;
+                gradRowBuffer[j] = gradientSum;
+            }
+            for (int j = 0; j < multShape[1]; j++) {
                 vector<int> indexOutput = {i, j};
-                output->at(indexOutput) = sum;
+                data->at(indexOutput) = rowBuffer[j];
+                if (grad != nullptr) {
+                    grad->at(indexOutput) = gradRowBuffer[j];
+                }
             }
         }
 
-        Tensor<T> result;
-        result.shape_ = outputShape;
-        result.data_ = output;
-        result.grad_ = nullptr;
-
-        return result;
+        return *this;
     }
 
     T operator[] (vector<int> indicies) {

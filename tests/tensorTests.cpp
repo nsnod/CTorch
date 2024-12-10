@@ -10,8 +10,8 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    Tensor<float> tensorA({4, 4});
-    Tensor<float> tensorB({4, 4});
+    Tensor<float> tensorA({784, 16});
+    Tensor<float> tensorB({16, 784});
 
     //only use ONE tensor across all different processes
     if (rank == 0) {
@@ -26,15 +26,16 @@ int main(int argc, char** argv) {
     MPI_Bcast(tensorB.grad_->data_.data(), tensorB.grad_->size_, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
     if (rank == 0) {
-        //original tensor check
-        std::cout << "Tensor A:" << std::endl;
-        tensorA.print_tensor();
-        std::cout << "Tensor B:" << std::endl;
-        tensorB.print_tensor();
+        // // original tensor check
+        // std::cout << "Tensor A:" << std::endl;
+        // tensorA.print_tensor();
+        // std::cout << "Tensor B:" << std::endl;
+        // tensorB.print_tensor();
 
 
         auto startNonMPI = std::chrono::high_resolution_clock::now();
         Tensor<float> resultNonMPI = tensorA.non_parallel_tensor_mult_test(tensorB);
+        // resultNonMPI.print_tensor();
         auto endNonMPI = std::chrono::high_resolution_clock::now();
 
         std::cout << "Non-MPI Time: " 
@@ -42,7 +43,7 @@ int main(int argc, char** argv) {
                   << " seconds" << std::endl;
 
         std::cout << "Non-MPI Result:" << std::endl;
-        resultNonMPI.print_tensor();
+        // resultNonMPI.print_tensor();
     }
     // sync up
     MPI_Barrier(MPI_COMM_WORLD);
@@ -58,7 +59,7 @@ int main(int argc, char** argv) {
                   << " seconds" << std::endl;
 
         std::cout << "MPI Result:" << std::endl;
-        resultMPI.print_tensor();
+        // resultMPI.print_tensor();
     }
 
     MPI_Finalize();
