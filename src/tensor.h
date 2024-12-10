@@ -112,6 +112,17 @@ class Tensor {
             grad_->print();
         }
         cout << endl;
+        if (prev_ == nullptr || prev_->at(0) == nullptr) {
+            cout << "Prev has not been set for this tensor yet." << endl;
+        } else {
+            for(int i = 0; i < prev_->size(); i++){
+                if ((*prev_)[i] == nullptr) {
+                    cout << "Prev has not been set for this tensor yet." << endl;
+                } else {
+                    prev_->at(i)->print();
+                }
+            }
+        }
     }
 
     Tensor<T>& operator+=(T scalar) {
