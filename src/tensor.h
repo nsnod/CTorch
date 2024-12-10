@@ -46,7 +46,23 @@ class Tensor {
         delete grad_;
     }
 
-    // Functions 
+    // Functions
+
+    void resetZeroData() const {
+        if (data_ == nullptr) {
+            std::cout << "No gradient to reset..." << std::endl;
+            return;
+        }
+        std::fill(data_->data_.begin(), data_->data_.end(), static_cast<T>(0.0f));
+    }
+
+    void resetZeroGrad() {
+        if (grad_ == nullptr) {
+            std::cout << "No gradient to reset..." << std::endl;
+            return;
+        }
+        std::fill(grad_->data_.begin(), grad_->data_.end(), static_cast<T>(0.0f));
+    }
 
     void reShape(vector<int> shape) {
         // if the shape isnt set yet
