@@ -39,6 +39,21 @@ public:
         calcStrides();  
     }
 
+    // Decopy constructor
+    Array(const Array* other) {
+        for (int i = 0; i < other->shape_.size(); i++) {
+            shape_.push_back(other->shape_[i]);
+        }
+        for (int i = 0; i < other->data_.size(); i++) {
+            data_.push_back(other->data_[i]);
+        }
+        for (int i = 0; i < other->strides_.size(); i++) {
+            strides_.push_back(other->strides_[i]);
+        }
+        dimension_ = other->dimension_;
+        size_ = other->size_;
+    }
+
     // Destructor
     ~Array() {}
 
@@ -49,7 +64,9 @@ public:
     int flatIndex(const vector<int> indices) const;
     void transpose();
 
-    
+    // Overloads 
+    Array<T>* operator*(T scalar);
+
     void print();
 
     T& at(const vector<int>& indices);
@@ -123,4 +140,13 @@ template <typename T>
 T& Array<T>::at(const vector<int>& indices) {
     int oneDimIndex = flatIndex(indices);
     return data_[oneDimIndex];
+}
+
+template <typename T>
+Array<T>* Array<T>::operator*(T scalar) {
+    Array<T>* output = new Array<T>(shape_);
+    for (int i = 0; i < data_.size(); i++) {
+        output->data_[i] = data_[i] * scalar;
+    }
+    return output;
 }
