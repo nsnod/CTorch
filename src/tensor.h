@@ -16,11 +16,11 @@ class Tensor {
     */
     vector<Array<T>*>* prev_; // for storing the previous values of the tensor before an operation 
     vector<int> shape_;
-    string& operation_;
+    string operation_;
 
     Tensor() : shape_({}), data_(nullptr), grad_(nullptr), prev_(nullptr), operation_(""){}
 
-    Tensor(vector<int> shape) : shape_(shape), data_(nullptr), grad_(nullptr), prev_(nullptr) {
+    Tensor(vector<int> shape) : shape_(shape), data_(nullptr), grad_(nullptr), prev_(nullptr), operation_("") {
         if (shape.size() == 1) {
             shape.push_back(1);  
         } 
@@ -189,8 +189,8 @@ class Tensor {
         return *this;
     }
 
-    Tensor<T>& operator*=(T scalar) {
-        self->operation_ = "mul";
+    Tensor<T>& operator*(T scalar) {
+        this->operation_ = "mul";
         Tensor<T>* output = new Tensor<T>(shape_);
         for (int i = 0; i < data_->size_; i++) {
             output->data_[i] = data_->data_[i] * scalar;
@@ -225,7 +225,7 @@ class Tensor {
 
         (*prev_)[0] = this->data_;
         (*prev_)[1] = other.data_;
-        self->operation_ = "matmul";
+        this->operation_ = "matmul";
 
         outputShape.push_back(dataShape[0]);
         outputShape.push_back(multShape[1]); 
@@ -278,7 +278,7 @@ class Tensor {
 
         (*prev_)[0] = this->data_;
         (*prev_)[1] = other.data_;
-        self->operation_ = "add";
+        this->operation_ = "add";
 
         for (int t = 0; t < numThreads; ++t) {
             int startIdx = t * chunkSize;
