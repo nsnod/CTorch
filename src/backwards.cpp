@@ -1,11 +1,35 @@
 #include "../src/tensor.h"
 
+// Backwards
+template<typename T = float>
+void backward(Tensor<T>* input){
+    if(input->operation_ == "relu"){
+        relu_backward(input);
+    } else if(input->operation_ == "softmax"){
+        softmax_backward(input);
+    } else if(input->operation_ == "mul"){
+        mul_backward(input);
+    } else {
+        cout << "Operation not supported" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+
+}
+
+
 // Gradient Calculations 
 
+
 template <typename T = float>
-void relu_backward(Tensor<T>* output) {
-    for(int i = 0; i < output->data_.size(); i++){
-        output->grad_[i] = *(output->data_)[i] > 0 ? *(output->data_)[i] : 0;
+void mul(Tensor<T>* input) {
+
+}
+
+template <typename T = float>
+void relu_backward(Tensor<T>* input) {
+    for(int i = 0; i < input->data_.size(); i++){
+        input->grad_[i] = *(input->data_)[i] > 0 ? *(input->data_)[i] : 0;
     }
 }
 

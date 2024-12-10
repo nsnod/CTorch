@@ -3,6 +3,8 @@
 template <typename T = float>
 Tensor<T> relu(Tensor<T>* input){
     Tensor<T>* t = new Tensor<T>(input->shape_);
+    input->operation_ = "relu";
+    
     // update previous 
     input->prev_->push_back(input->data_);
     for(int i = 0; i < input->data_->size_; i++){
@@ -14,20 +16,22 @@ Tensor<T> relu(Tensor<T>* input){
 }
 
 template <typename T = float>
-Tensor<T> softmax(Tensor<T>* inp){
-    if (inp->shape_.size() != 2) {
+Tensor<T> softmax(Tensor<T>* input){
+    if (input->shape_.size() != 2) {
         std::cout << "Must be a 2D tensor" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-    int batch_size = inp->shape_[0];
-    int num_classes = inp->shape_[1];
-    Tensor<T>* t = new Tensor<T>(inp->shape_);
+    int batch_size = input->shape_[0];
+    int num_classes = input->shape_[1];
+    Tensor<T>* t = new Tensor<T>(input->shape_);
+    input->operation_ = "softmax";
+
     for (int i = 0; i < batch_size; i++) {
         // Find the max value in the row for numerical stability
-        T maxVal = inp->data_->at({i, 0});
+        T maxVal = input->data_->at({i, 0});
         for (int j = 1; j < num_classes; j++) {
-            T val = inp->data_->at({i, j});
+            T val = input->data_->at({i, j});
             if (val > maxVal) {
                 maxVal = val;
             }
@@ -37,7 +41,7 @@ Tensor<T> softmax(Tensor<T>* inp){
         std::vector<T> exp_values(num_classes);
         T sum_exp = 0;
         for (int j = 0; j < num_classes; j++) {
-            T exp_val = std::exp(inp->data_->at({i, j}) - maxVal);
+            T exp_val = std::exp(input->data_->at({i, j}) - maxVal);
             exp_values[j] = exp_val;
             sum_exp += exp_val;
         }
