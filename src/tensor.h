@@ -657,8 +657,8 @@ class Tensor {
         }
 
         Tensor<T> result;
-        result.shape_ = outputShape;
-        result.data_ = output;
+        result.shape_ = shape_;
+        result.data_ = result;
         result.grad_ = nullptr;
 
         return result;
