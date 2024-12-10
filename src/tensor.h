@@ -118,9 +118,6 @@ class Tensor {
     Tensor<T>& tensorAdd(T scalar) {
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] + scalar;
-        }
-
-        for (int i = 0; i < grad_->size_; i++) {
             grad_->data_[i] = grad_->data_[i] + 1;
         }
 
@@ -156,9 +153,6 @@ class Tensor {
     Tensor<T>& tensorSub(T scalar) {
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] - scalar;
-        }
-
-        for (int i = 0; i < grad_->size_; i++) {
             grad_->data_[i] = grad_->data_[i] - 1;
         }
 
@@ -195,9 +189,6 @@ class Tensor {
     Tensor<T>& tensorScalarMult(T scalar) {
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] * scalar;
-        }
-
-        for (int i = 0; i < grad_->size_; i++) {
             grad_->data_[i] = grad_->data_[i] * scalar;
         }
 
@@ -230,15 +221,10 @@ class Tensor {
     }
 
     Tensor<T>& tensorScalarDivide(T scalar) {
-        
         for (int i = 0; i < data_->size_; i++) {
             data_->data_[i] = data_->data_[i] / scalar;
-        }
-
-        for (int i = 0; i < grad_->size_; i++) {
             grad_->data_[i] = grad_->data_[i] / scalar;
         }
-
         return *this;
     }
 
