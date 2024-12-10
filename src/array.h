@@ -66,6 +66,7 @@ public:
 
     // Overloads 
     Array<T>* operator*(T scalar);
+    bool operator==(const Array& other);
 
     void print();
 
@@ -94,6 +95,23 @@ void Array<T>::calcStrides() {
     for (int i = dimension_ - 2; i >= 0; i--) {
         strides_[i] = strides_[i + 1] * shape_[i + 1];
     }
+}
+
+template <typename T>
+bool Array<T>::operator==(const Array& other) {
+    vector<T> data = data_;
+    vector<T> otherData = other.data_;
+
+    if (data.shape_ != other.shape_) {
+        return false;
+    } else {
+        for (int i = 0; i < size_ - 1; i++) {
+            if (data[i] != otherData[i]) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 template <typename T>
