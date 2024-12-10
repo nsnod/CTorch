@@ -14,10 +14,9 @@ public:
         weights.randomize_tensor(-1, 1);
     }
 
-    Tensor <float> forward(Tensor<float>& X) { 
-        // Multiply weights with X
-        Tensor<float> output_tensor({(weights.shape_).at(0),(X.shape_).at(1)});//setting dimensions (nxm) (x*y) = n*y matrix//
-        output_tensor = output_tensor * X;
+    Tensor<float> forward(const Tensor<float>& X) { 
+        Tensor<float> output_tensor({weights.shape_[0], X.shape_[1]});
+        output_tensor = output_tensor * X; 
         return output_tensor;
     }
 };

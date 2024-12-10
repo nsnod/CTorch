@@ -30,10 +30,7 @@ void mul_backward(Tensor<T>* input) {
 
 template <typename T = float>
 void matmul_backward(Tensor<T>* input) {
-    for(int i = 0; i < input->data_.size(); i++){
-        input->prev_->at(0)->grad_[i] += input->grad_[i] * input->prev_->at(1)->data_[i];
-        input->prev_->at(1)->grad_[i] += input->grad_[i] * input->prev_->at(0)->data_[i];
-    }
+    
 }
 
 template <typename T = float>

@@ -17,7 +17,6 @@ int main(int argc, char **argv) {
     Array<float> data({16, 4});
     Array<float>* output;
 
-    data 
     output = data * 2;
     output->print();
 

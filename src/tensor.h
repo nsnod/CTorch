@@ -16,7 +16,7 @@ class Tensor {
     */
     vector<Array<T>*>* prev_; // for storing the previous values of the tensor before an operation 
     vector<int> shape_;
-    string operation_;
+    string operation_;  // contains the operation that was done to create this tensor
 
     Tensor() : shape_({}), data_(nullptr), grad_(nullptr), prev_(nullptr), operation_(""){}
 
@@ -39,17 +39,17 @@ class Tensor {
         operation_ = other.operation_;
     }
 
-    Tensor& operator=(const Tensor& other) {
+    Tensor* operator=(const Tensor* other) {
         if (this != &other) {
             delete data_;
             delete grad_;
-            shape_ = other.shape_;
-            data_ = new Array<T>(*other.data_);
-            grad_ = new Array<T>(*other.grad_);
-            prev_ = other.prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
-            operation_ = other.operation_;
+            shape_ = other->shape_;
+            data_ = new Array<T>(*other->data_);
+            grad_ = new Array<T>(*other->grad_);
+            prev_ = other->prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
+            operation_ = other->operation_;
         }
-        return *this;
+        return this;
     }
 
     ~Tensor() {
@@ -126,11 +126,15 @@ class Tensor {
         }
         cout << endl;
         cout << "prev" << endl;
-        if (prev_ == nullptr || prev_->at(0) == nullptr) {
+        if (prev_ == nullptr && prev_->at(0) == nullptr) {
             cout << "Prev has not been set for this tensor yet." << endl;
         } else {
             for(int i = 0; i < prev_->size(); i++){
-                prev_->at(i)->print();
+                if (prev_->at(i) == nullptr) {
+                    cout << "Prev has not been set for this tensor yet." << endl;
+                } else {
+                    prev_->at(i)->print();
+                }
             }
         }
         cout << endl;
@@ -190,8 +194,8 @@ class Tensor {
     }
 
     Tensor<T>& operator*(T scalar) {
-        this->operation_ = "mul";
         Tensor<T>* output = new Tensor<T>(shape_);
+        output->operation_ = "mul";
         for (int i = 0; i < data_->size_; i++) {
             output->data_[i] = data_->data_[i] * scalar;
         }
@@ -203,7 +207,7 @@ class Tensor {
     // ONLY WORKS FOR 1D AND 2D CURRENTLY
     // in place until we expand for CNN 3ds
     // Matrix multiplication 
-    Tensor operator*(const Tensor& other) {
+    Tensor<T> operator*(const Tensor<T>& other) const {
         Array<T>* data = this->data_;
         Array<T>* multData = other.data_;
 
@@ -225,7 +229,6 @@ class Tensor {
 
         (*prev_)[0] = this->data_;
         (*prev_)[1] = other.data_;
-        this->operation_ = "matmul";
 
         outputShape.push_back(dataShape[0]);
         outputShape.push_back(multShape[1]); 
@@ -244,11 +247,11 @@ class Tensor {
                 output->at(indexOutput) = sum;
             }
         }
-
         Tensor<T> result;
         result.shape_ = outputShape;
         result.data_ = output;
         result.grad_ = nullptr;
+        result.operation_ = "matmul";
 
         return result;
     }
@@ -278,7 +281,7 @@ class Tensor {
 
         (*prev_)[0] = this->data_;
         (*prev_)[1] = other.data_;
-        this->operation_ = "add";
+        output->operation_ = "add";
 
         for (int t = 0; t < numThreads; ++t) {
             int startIdx = t * chunkSize;

@@ -1,9 +1,40 @@
 #include "../src/tensor.h"
 
 template <typename T = float>
+Tensor<T>* mean(Tensor<T>* input){
+    int new_size = input->shape_.size();
+    Tensor<T>* output = new Tensor<T>({new_size});
+    output->operation_ = "mean";
+
+    // update previous 
+    (*output->prev_)[0] =  input->data_;
+
+    // calculate mean depending on dimension
+    float temp = 0.0f;
+    if(input->shape_.size() == 1){
+        for(int i = 0; i < input->data_->size_; i++){
+            temp += (*input->data_)[i];
+        }
+        float sum = static_cast<float>((input->data_)[0].size_);
+        (*output->data_)[0] = temp / sum;
+    } else {
+        for(int i = 0; i < input->shape_[0]; i++){
+            for(int j = 0; j < input->shape_[1]; j++){
+                temp += input->data_[i][j];
+            }
+            float sum = static_cast<float>((input->data_)[1].size_);
+            (*output->data_)[i] = temp / sum;
+            temp = 0.0f;
+        }
+    }
+    
+    return output;
+}
+
+template <typename T = float>
 Tensor<T> relu(Tensor<T>* input){
     Tensor<T>* t = new Tensor<T>(input->shape_);
-    input->operation_ = "relu";
+    t->operation_ = "relu";
     
     // update previous 
     input->prev_->push_back(input->data_);
@@ -25,7 +56,7 @@ Tensor<T> softmax(Tensor<T>* input){
     int batch_size = input->shape_[0];
     int num_classes = input->shape_[1];
     Tensor<T>* t = new Tensor<T>(input->shape_);
-    input->operation_ = "softmax";
+    t->operation_ = "softmax";
 
     for (int i = 0; i < batch_size; i++) {
         // Find the max value in the row for numerical stability

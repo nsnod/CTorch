@@ -14,6 +14,7 @@ TEST(ExampleTest, OneIsOne) {
 }
 
 int main(int argc, char **argv) {
+    /*
     // test softmax
     Tensor<float> inputTensor({2, 3}); // Batch size of 2, number of classes is 3, test made by CHATGPT HEE HEE
         inputTensor.data_->data_ = {
@@ -67,6 +68,17 @@ int main(int argc, char **argv) {
     // Print the output tensor after relu
     std::cout << "Output Tensor after ReLU:" << std::endl;
     outputTensor2.print_tensor();
+    */
+
+    // test mean
+    Tensor<float> inputTensor3({2, 3}); // Batch size of 2, number of classes is 3, test made by CHATGPT HEE HEE
+        inputTensor3.data_->data_ = {
+            1.0, 2.0, 3.0, // First sample
+            -1.0, 2.0, -3.0  // Second sample
+    };
+    Tensor<float>* outputTensor3 = nullptr;
+    outputTensor3 = mean(&inputTensor3);
+    outputTensor3->print_tensor();
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
