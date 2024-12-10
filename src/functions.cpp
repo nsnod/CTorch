@@ -15,15 +15,16 @@ Tensor<T>* mean(Tensor<T>* input){
         for(int i = 0; i < input->data_->size_; i++){
             temp += (*input->data_)[i];
         }
-        float sum = static_cast<float>((input->data_)[0].size_);
-        (*output->data_)[0] = temp / sum;
+        float n = static_cast<float>((input->data_)[0].size_);
+        (*output->data_)[0] = temp / n;
     } else {
         for(int i = 0; i < input->shape_[0]; i++){
+            input->data_[i].print();
             for(int j = 0; j < input->shape_[1]; j++){
-                temp += input->data_[i][j];
+                temp += input->data_->at({i, j});
             }
-            float sum = static_cast<float>((input->data_)[1].size_);
-            (*output->data_)[i] = temp / sum;
+            float n = static_cast<float>((input->shape_)[1]);
+            (*output->data_)[i] = temp / n;
             temp = 0.0f;
         }
     }

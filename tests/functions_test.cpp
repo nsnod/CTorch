@@ -76,8 +76,10 @@ int main(int argc, char **argv) {
             1.0, 2.0, 3.0, // First sample
             -1.0, 2.0, -3.0  // Second sample
     };
+    inputTensor3.print_tensor();
     Tensor<float>* outputTensor3 = nullptr;
     outputTensor3 = mean(&inputTensor3);
+    inputTensor3.print_tensor();
     outputTensor3->print_tensor();
 
     ::testing::InitGoogleTest(&argc, argv);
