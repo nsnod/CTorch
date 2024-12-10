@@ -18,7 +18,12 @@ set(HEADERS
     src/tensor.h
 )
 
+find_package(MPI REQUIRED)
+include_directories(${MPI_INCLUDE_PATH})
+
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+target_link_libraries(${PROJECT_NAME} ${MPI_LIBRARIES})
 
 option(BUILD_TESTING "Enable testing" OFF)
 
@@ -40,12 +45,13 @@ if(BUILD_TESTING)
     add_executable(backwards_test tests/backwards_test.cpp)
     add_executable(functions_test tests/functions_test.cpp) # Add the new functions test
 
-    target_link_libraries(tensor_test gtest gtest_main)
-    target_link_libraries(array_test gtest gtest_main)
+    target_link_libraries(tensor_test gtest gtest_main ${MPI_LIBRARIES})
+    target_link_libraries(array_test gtest gtest_main ${MPI_LIBRARIES})
     target_link_libraries(linear_test gtest gtest_main)
     target_link_libraries(gradient_test gtest gtest_main)
     target_link_libraries(backwards_test gtest gtest_main)
     target_link_libraries(functions_test gtest gtest_main) # Link the new test with gtest
+
 
     add_test(NAME tensor_test COMMAND tensor_test)
     add_test(NAME array_test COMMAND array_test)
