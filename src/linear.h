@@ -1,23 +1,22 @@
-// #pragma once
-// #include "linear.h"
-// #include "tensor.h"
-// #include <iostream>
-// #include <vector>
+#pragma once
+#include <iostream>
+#include "../src/tensor.h"
 
-// using namespace std;
+using namespace std;
 
-// class LinearLayer{
-// public:
-//     Tensor<float> weights;
+class LinearLayer{
+public:
+    Tensor<float> weights;
+    
+    LinearLayer(const int input_size, const int output_size){ 
+        // Initialize weights with the shape (output_size, input_size) for matrix multiplication
+        weights.reshape({input_size, output_size});
+        weights.randomize_tensor(-1, 1);
+    }
 
-//     LinearLayer(int input_size, int output_size){
-//         weights = Tensor<float>(input_size, output_size); 
-//     }
-//     ~LinearLayer(){
-
-//     }
-
-//     void forward(Tensor<float> input){
-//         return input.matmul(weights);
-//     }
-// };
+    Tensor<float> forward(const Tensor<float>& X) { 
+        Tensor<float> output_tensor({weights.shape_[0], X.shape_[1]});
+        output_tensor = output_tensor * X; 
+        return output_tensor;
+    }
+};

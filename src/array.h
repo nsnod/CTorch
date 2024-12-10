@@ -39,6 +39,21 @@ public:
         calcStrides();  
     }
 
+    // Decopy constructor
+    Array(const Array* other) {
+        for (int i = 0; i < other->shape_.size(); i++) {
+            shape_.push_back(other->shape_[i]);
+        }
+        for (int i = 0; i < other->data_.size(); i++) {
+            data_.push_back(other->data_[i]);
+        }
+        for (int i = 0; i < other->strides_.size(); i++) {
+            strides_.push_back(other->strides_[i]);
+        }
+        dimension_ = other->dimension_;
+        size_ = other->size_;
+    }
+
     // Destructor
     ~Array() {}
 
@@ -49,7 +64,10 @@ public:
     int flatIndex(const vector<int> indices) const;
     void transpose();
 
-    
+    // Overloads 
+    Array<T>* operator*(T scalar);
+    bool operator==(const Array& other);
+
     void print();
 
     T& at(const vector<int>& indices);
@@ -77,6 +95,23 @@ void Array<T>::calcStrides() {
     for (int i = dimension_ - 2; i >= 0; i--) {
         strides_[i] = strides_[i + 1] * shape_[i + 1];
     }
+}
+
+template <typename T>
+bool Array<T>::operator==(const Array& other) {
+    vector<T> data = data_;
+    vector<T> otherData = other.data_;
+
+    if (data.shape_ != other.shape_) {
+        return false;
+    } else {
+        for (int i = 0; i < size_ - 1; i++) {
+            if (data[i] != otherData[i]) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 template <typename T>
@@ -123,4 +158,13 @@ template <typename T>
 T& Array<T>::at(const vector<int>& indices) {
     int oneDimIndex = flatIndex(indices);
     return data_[oneDimIndex];
+}
+
+template <typename T>
+Array<T>* Array<T>::operator*(T scalar) {
+    Array<T>* output = new Array<T>(shape_);
+    for (int i = 0; i < data_.size(); i++) {
+        output->data_[i] = data_[i] * scalar;
+    }
+    return output;
 }
