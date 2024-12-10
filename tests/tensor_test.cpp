@@ -5,12 +5,6 @@
 #include "../src/functions.cpp"
 #include "../src/backwards.cpp"
 
-int main(int argc, char** argv) {
-    MPI_Init(&argc, &argv);
-
-    int rank, size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
 int main(int argc, char **argv) {
     /*
@@ -19,17 +13,17 @@ int main(int argc, char **argv) {
         =======================
     */
 
-    Tensor<float> test1;
-    test1.reshape({3,1});
+    // Tensor<float> test1;
+    // test1.reshape({3,1});
 
-    test1.randomize_tensor(-1, 1);
-    test1.print_tensor();
+    // test1.randomize_tensor(-1, 1);
+    // test1.print_tensor();
 
-    Tensor<float> test2({1,10});
+    // Tensor<float> test2({1,10});
 
-    test2.print_tensor();
-    Tensor<float> test3 = test1 * test2;
-    test3.print_tensor();
+    // test2.print_tensor();
+    // Tensor<float> test3 = test1 * test2;
+    // test3.print_tensor();
 
 
     /*
@@ -37,9 +31,14 @@ int main(int argc, char **argv) {
         Test for Tensor Multiplication with MPI
         =======================
     */
+    MPI_Init(&argc, &argv);
 
-    Tensor<float> tensorA({4, 4});
-    Tensor<float> tensorB({4, 4});
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    Tensor<float> tensorA({784, 16});
+    Tensor<float> tensorB({16, 784});
 
     //only use ONE tensor across all different processes
     if (rank == 0) {
@@ -56,9 +55,9 @@ int main(int argc, char **argv) {
     if (rank == 0) {
         // original tensor check
         std::cout << "Tensor A:" << std::endl;
-        tensorA.print_tensor();
+        // tensorA.print_tensor();
         std::cout << "Tensor B:" << std::endl;
-        tensorB.print_tensor();
+        // tensorB.print_tensor();
 
 
         auto startNonMPI = std::chrono::high_resolution_clock::now();

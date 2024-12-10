@@ -344,16 +344,6 @@ class Tensor {
     }
 
 
-    Tensor<T>& operator*(T scalar) {
-        Tensor<T>* output = new Tensor<T>(shape_);
-        output->operation_ = "mul";
-        for (int i = 0; i < data_->size_; i++) {
-            output->data_[i] = data_->data_[i] * scalar;
-        }
-        output->prev_->push_back(data_);
-        return output;
-    }
-
 
     /*
         ======================
@@ -387,7 +377,8 @@ class Tensor {
 
         (*prev_)[0] = this->data_;
         (*prev_)[1] = other.data_;
-        output->operation_ = "matmul";
+        vector<int> outputShape = {dataShape[0], multShape[1]};
+        Array<T>* output = new Array<T>(outputShape);
 
         int rank, size;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -401,29 +392,18 @@ class Tensor {
 
         for (int i = startRow; i < endRow; i++) {
             vector<T> rowBuffer(multShape[1], 0);
-            vector<T> gradRowBuffer(multShape[1], 0);
             for (int j = 0; j < multShape[1]; j++) {
                 T sum = 0;
-                T gradientSum = 0;
                 for (int k = 0; k < dataShape[1]; k++) {
                     vector<int> indexA = {i, k};
                     vector<int> indexB = {k, j};
                     sum += data->at(indexA) * multData->at(indexB);
-
-                    //Gradient updates for in-place operation
-                    if (grad != nullptr && multGrad != nullptr) {
-                        gradientSum += grad->at(indexA) * multData->at(indexB);
-                    }
                 }
                 rowBuffer[j] = sum;
-                gradRowBuffer[j] = gradientSum;
             }
             for (int j = 0; j < multShape[1]; j++) {
                 vector<int> indexOutput = {i, j};
-                data->at(indexOutput) = rowBuffer[j];
-                if (grad != nullptr) {
-                    grad->at(indexOutput) = gradRowBuffer[j];
-                }
+                output->at(indexOutput) = rowBuffer[j];
             }
         }
 
@@ -437,7 +417,13 @@ class Tensor {
             MPI_COMM_WORLD
         );
 
-        return *this;
+        Tensor<T> result;
+        result.shape_ = outputShape;
+        result.data_ = output;
+        result.grad_ = nullptr;
+        result.operation_ = "matmul";
+
+        return result;
     }
 
     // ONLY FOR TESTING PURPOSES REMOVE LATER 
@@ -461,9 +447,11 @@ class Tensor {
             cout << "Shape of tensor B: (" << multShape[0] << ", " << multShape[1] << ")" << endl;
         }
 
+        vector<int> outputShape = {dataShape[0], multShape[1]};
+        Array<T>* output = new Array<T>(outputShape);
+
         for (int i = 0; i < dataShape[0]; i++) {
             vector<T> rowBuffer(multShape[1], 0);
-            vector<T> gradRowBuffer(multShape[1], 0);
             for (int j = 0; j < multShape[1]; j++) {
                 T sum = 0;
                 T gradientSum = 0;
@@ -471,18 +459,12 @@ class Tensor {
                     vector<int> indexA = {i, k};
                     vector<int> indexB = {k, j};
                     sum += data->at(indexA) * multData->at(indexB);
-
-                    //Gradient updates for in-place operation
-                    if (grad != nullptr && multGrad != nullptr) {
-                        gradientSum += grad->at(indexA) * multData->at(indexB);
-                    }
                 }
                 rowBuffer[j] = sum;
-                gradRowBuffer[j] = gradientSum;
             }
             for (int j = 0; j < multShape[1]; j++) {
                 vector<int> indexOutput = {i, j};
-                output->at(indexOutput) = sum;
+                output->at(indexOutput) = rowBuffer[j];
             }
         }
 
@@ -491,7 +473,7 @@ class Tensor {
         result.data_ = output;
         result.grad_ = nullptr;
 
-        return *this;
+        return result;
     }
 
     // Tensor addition 
