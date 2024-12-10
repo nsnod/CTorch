@@ -656,7 +656,12 @@ class Tensor {
             }
         }
 
-        return *this;
+        Tensor<T> result;
+        result.shape_ = outputShape;
+        result.data_ = output;
+        result.grad_ = nullptr;
+
+        return result;
     }
 
     T operator[] (vector<int> indicies) {
