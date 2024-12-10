@@ -18,6 +18,7 @@ class Tensor {
     vector<Array<T>*>* prev_; // for storing the previous values of the tensor before an operation 
     vector<int> shape_;
     string operation_;  // contains the operation that was done to create this tensor
+    int num_prev; // number of previous tensors needed to create this tensor 
 
     Tensor() : shape_({}), data_(nullptr), grad_(nullptr), prev_(nullptr), operation_(""){}
 
@@ -30,6 +31,7 @@ class Tensor {
         grad_ = new Array<T>(shape_);
         prev_ = new vector<Array<T>*>(3, nullptr); // default allocate 3 // should contain the previous values used to create the tensor if any
         operation_ = "";
+        num_prev = 0;
     }
 
     Tensor(const Tensor& other) {
@@ -38,6 +40,7 @@ class Tensor {
         grad_ = new Array<T>(*other.grad_);
         prev_ = other.prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
         operation_ = other.operation_;
+        num_prev = other.num_prev;
     }
 
     Tensor* operator=(const Tensor* other) {
@@ -49,6 +52,7 @@ class Tensor {
             grad_ = new Array<T>(*other->grad_);
             prev_ = other->prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
             operation_ = other->operation_;
+            num_prev = other->num_prev;
         }
         return this;
     }
@@ -143,11 +147,11 @@ class Tensor {
         }
         cout << endl;
         cout << "prev" << endl;
-        if (prev_ == nullptr && prev_->at(0) == nullptr) {
+        if (prev_ == nullptr || prev_->at(0) == nullptr) {
             cout << "Prev has not been set for this tensor yet." << endl;
         } else {
             for(int i = 0; i < prev_->size(); i++){
-                if (prev_->at(i) == nullptr) {
+                if ((*prev_)[i] == nullptr) {
                     cout << "Prev has not been set for this tensor yet." << endl;
                 } else {
                     prev_->at(i)->print();
@@ -422,6 +426,7 @@ class Tensor {
         result.data_ = output;
         result.grad_ = nullptr;
         result.operation_ = "matmul";
+        result.num_prev = 2;
 
         return result;
     }
@@ -502,6 +507,7 @@ class Tensor {
         (*prev_)[0] = this->data_;
         (*prev_)[1] = other.data_;
         output->operation_ = "add";
+        output->num_prev = 2;
 
         for (int t = 0; t < numThreads; ++t) {
             int startIdx = t * chunkSize;

@@ -5,6 +5,7 @@ Tensor<T>* mean(Tensor<T>* input){
     int new_size = input->shape_.size();
     Tensor<T>* output = new Tensor<T>({new_size});
     output->operation_ = "mean";
+    output->num_prev = 1;
 
     // update previous 
     (*output->prev_)[0] =  input->data_;
@@ -36,6 +37,7 @@ template <typename T = float>
 Tensor<T> relu(Tensor<T>* input){
     Tensor<T>* t = new Tensor<T>(input->shape_);
     t->operation_ = "relu";
+    t->num_prev = 1;
     
     // update previous 
     input->prev_->push_back(input->data_);
@@ -58,6 +60,7 @@ Tensor<T> softmax(Tensor<T>* input){
     int num_classes = input->shape_[1];
     Tensor<T>* t = new Tensor<T>(input->shape_);
     t->operation_ = "softmax";
+    t->num_prev = 1;
 
     for (int i = 0; i < batch_size; i++) {
         // Find the max value in the row for numerical stability
