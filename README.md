@@ -1,7 +1,12 @@
 # CTorch
-:3
+<a name="top"></a>
+<div align="center">
+<img src = "./src/images/CTorch_Library.png">
 
 # Description
+Understanding PyTorch, a potent machine learning package, and investigating methods to speed up its calculations through parallelization are the main goals of this project. In order to maximize PyTorch's usefulness, we aim to locate performance bottlenecks in its operations and apply effective parallel processing strategies.
+
+Our work is based on CTorch, an open-source project that focuses on GPU acceleration by re-implementing parts of PyTorch in C++. We hope to significantly improve the speed and effectiveness of PyTorch's matrix multiplication, backpropagation, tensors, linear functions, etc. by utilizing the ideas and design of CTorch.
 
 # Documentation
 
@@ -17,5 +22,8 @@ Turn the testing option in CMakeLists.txt OFF or ON if you want to run the tests
 > ./build.sh
 
 
-run output files via
+Run output files via
 >./build/OUTPUTFILENAME
+
+Our tensors functions are inherently parallel so when running parallel code use the mpi run function.
+>mpirun -np (# of processes) ./build/OUTPUTFILENAME

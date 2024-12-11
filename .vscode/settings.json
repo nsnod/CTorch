@@ -64,6 +64,8 @@
         "unordered_set": "cpp",
         "variant": "cpp",
         "algorithm": "cpp",
-        "__config": "cpp"
+        "__config": "cpp",
+        "thread": "cpp",
+        "future": "cpp"
     }
 }
