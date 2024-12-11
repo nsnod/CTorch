@@ -116,3 +116,12 @@ void softmax_backward(Tensor<T>* inp) {
         }
     }
 }
+
+
+void mse_backward(Tensor<float>* input){
+    for(int i = 0; i < input->shape_[0]; i++){
+        for(int j = 0; j < input->shape_[1]; j++){
+            (*input->prev_)[0]->grad_->at({i, j}) = 2 * (*input->prev_)[0]->grad_->at({i, j}) / input->shape_[0];
+        }
+    }
+}

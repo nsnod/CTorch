@@ -37,8 +37,8 @@ int main(int argc, char **argv) {
     softmax_output->print_tensor(); // Print the gradients with respect to the input tensor
     relu_output->print_tensor(); // Print the gradients with respect to the input tensor
     mul_output.print_tensor(); // Print the gradients with respect to the input tensor
-    input2.print_tensor(); // Print the gradients with respect to the input tensor
-    input.print_tensor(); // Print the gradients with respect to the input tensor
+    // input2.print_tensor(); // Print the gradients with respect to the input tensor
+    // input.print_tensor(); // Print the gradients with respect to the input tensor
 
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
