@@ -33,7 +33,7 @@ Tensor<T>* mean(Tensor<T>* input){
 }
 
 template <typename T = float>
-Tensor<T> relu(Tensor<T>* input){
+Tensor<T>* relu(Tensor<T>* input){
     if (input->shape_.size() != 2) {
         std::cout << "Must be a 2D tensor" << std::endl;
         exit(EXIT_FAILURE);
@@ -42,17 +42,16 @@ Tensor<T> relu(Tensor<T>* input){
     (*t->prev_)[0] = input;  // set previous
     t->operation_ = "relu";
     t->num_prev = 1;
-
     for(int i = 0; i < input->shape_[0]; i++){
         for(int j = 0; j < input->shape_[1]; j++){
             t->data_->at({i, j}) = input->data_->at({i, j}) > 0 ? input->data_->at({i, j}) : 0;
         }
     }
-    return *t;
+    return t;
 }
 
 template <typename T = float>
-Tensor<T> softmax(Tensor<T>* input){
+Tensor<T>* softmax(Tensor<T>* input){
     if (input->shape_.size() != 2) {
         std::cout << "Must be a 2D tensor" << std::endl;
         exit(EXIT_FAILURE);
@@ -89,5 +88,5 @@ Tensor<T> softmax(Tensor<T>* input){
             t->data_->at({i, j}) = exp_values[j] / sum_exp;
         }
     }
-    return *t;
+    return t;
 }

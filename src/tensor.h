@@ -37,20 +37,41 @@ class Tensor {
     Tensor(const Tensor& other) {
         shape_ = other.shape_;
         data_ = new Array<T>(*other.data_);
+        cout << "cpy " << other.grad_ << endl;
         grad_ = new Array<T>(*other.grad_);
-        prev_ = other.prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
+        cout << "cpy " << grad_ << endl;
+        prev_ = new vector<Tensor<T>*>(*other.prev_);     // TODO if we want to delete this itll get messay since the other tensor will delete it too
         operation_ = other.operation_;
         num_prev = other.num_prev;
     }
 
-    Tensor* operator=(const Tensor* other) {
+    Tensor operator=(const Tensor& other) {
         if (this != &other) {
+            cout << "cpy " << other.grad_ << endl;
             delete data_;
             delete grad_;
+            delete prev_;
+            shape_ = other.shape_;
+            data_ = new Array<T>(other.data_);
+            grad_ = new Array<T>(other.grad_);
+            prev_ = new vector<Tensor<T>*>(*other.prev_);     // TODO if we want to delete this itll get messay since the other tensor will delete it too
+            operation_ = other.operation_;
+            num_prev = other.num_prev;
+            cout << "finish" << endl;
+        }
+        return *this;
+    }
+
+    Tensor* operator=(const Tensor* other) {
+        if (this != &other) {
+            cout << "cpy " << other->grad_ << endl;
+            delete data_;
+            delete grad_;
+            delete prev_;
             shape_ = other->shape_;
             data_ = new Array<T>(*other->data_);
             grad_ = new Array<T>(*other->grad_);
-            prev_ = other->prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
+            prev_ = new vector<Tensor<T>*>(*other->prev_);     // TODO if we want to delete this itll get messay since the other tensor will delete it too
             operation_ = other->operation_;
             num_prev = other->num_prev;
         }
@@ -145,20 +166,20 @@ class Tensor {
             grad_->print();
         }
         cout << endl;
-        cout << "prev" << endl;
-        if (prev_ == nullptr || prev_->at(0) == nullptr) {
-            cout << "Prev has not been set for this tensor yet." << endl;
-        } else {
-            for(int i = 0; i < prev_->size(); i++){
-                if ((*prev_)[i] == nullptr) {
-                    cout << "Prev has not been set for this tensor yet." << endl;
-                } else {
-                    cout << "Previous tensor " << i << ":" << endl;
-                    (*prev_)[i]->print_tensor();
-                }
-            }
-        }
-        cout << endl;
+        // cout << "prev" << endl;
+        // if (prev_ == nullptr || prev_->at(0) == nullptr) {
+        //     cout << "Prev has not been set for this tensor yet." << endl;
+        // } else {
+        //     for(int i = 0; i < prev_->size(); i++){
+        //         if ((*prev_)[i] == nullptr) {
+        //             cout << "Prev has not been set for this tensor yet." << endl;
+        //         } else {
+        //             cout << "Previous tensor " << i << ":" << endl;
+        //             (*prev_)[i]->print_tensor();
+        //         }
+        //     }
+        // }
+        // cout << endl;
     }
 
 
@@ -421,11 +442,11 @@ class Tensor {
             MPI_COMM_WORLD
         );
 
-        Tensor<T> result;
-        result.shape_ = outputShape;
+        Tensor<T> result(outputShape);
         result.data_ = output;
-        result.grad_ = nullptr;
         result.operation_ = "matmul";
+        (*(result.prev_))[0] = this;
+        (*(result.prev_))[1] = &other;
         result.num_prev = 2;
 
         return result;
