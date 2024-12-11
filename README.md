@@ -9,6 +9,7 @@ Understanding PyTorch, a potent machine learning package, and investigating meth
 Our work is based on CTorch, an open-source project that focuses on GPU acceleration by re-implementing parts of PyTorch in C++. We hope to significantly improve the speed and effectiveness of PyTorch's matrix multiplication, backpropagation, tensors, linear functions, etc. by utilizing the ideas and design of CTorch.
 
 # Documentation
+You can clink on the link namely CS160 Documentation for understanding our project.
 
 ## array.h
 The array.h class is our custom class for dealing with N dimensional arrays.\
