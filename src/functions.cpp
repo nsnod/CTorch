@@ -88,5 +88,26 @@ Tensor<T>* softmax(Tensor<T>* input){
             t->data_->at({i, j}) = exp_values[j] / sum_exp;
         }
     }
+
     return t;
+}
+
+
+template <typename T = float>
+Tensor<T> loss_fn(Tensor<T>* predictions, Tensor<T>* targets) {
+    if (predictions->shape_ != targets->shape_) {
+        std::cout << "shape should be the same" << std::endl;
+        return
+        
+    }
+
+    Tensor<T> diff = *predictions - *targets;
+
+
+    Tensor<T> squared_diff = diff * diff;
+
+    // Calculate the mean of the squared differences
+    Tensor<T>* mse = mean(&squared_diff);
+
+    return *mse;
 }
