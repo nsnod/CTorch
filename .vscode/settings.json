@@ -65,6 +65,7 @@
         "variant": "cpp",
         "algorithm": "cpp",
         "__config": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "future": "cpp"
     }
 }

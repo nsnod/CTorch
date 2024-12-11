@@ -14,7 +14,7 @@ public:
         weights.randomize_tensor(-1, 1);
     }
 
-    Tensor<float> forward(const Tensor<float>& X) { 
+    Tensor<float> forward(Tensor<float>& X) { 
         Tensor<float> output_tensor({weights.shape_[0], X.shape_[1]});
         output_tensor = output_tensor * X; 
         return output_tensor;

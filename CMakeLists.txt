@@ -1,16 +1,25 @@
 cmake_minimum_required(VERSION 3.16)
 
+# Project name
 project(CTorch)
 
-# C++ Standard
+# Set C++ standard
 set(CMAKE_CXX_STANDARD 11)
 
-# Include source directories
+# Set OpenCV directory to the path where OpenCVConfig.cmake is located
+set(OpenCV_DIR "C:/opencv/build/install") # Adjust this path
+
+# Find OpenCV
+find_package(OpenCV REQUIRED)
+
+# Include directories for source files
 include_directories(src)
 
-# Source files
+# Set the source and header files
 set(SOURCES
+    # main.cpp
     main.cpp
+    src/mnist/mnist.cpp
     src/backwards.cpp
     src/functions.cpp
 )
@@ -21,6 +30,15 @@ set(HEADERS
     src/linear.h
     src/tensor.h
 )
+
+# Add the main executable
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+
+# Include OpenCV headers
+target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS})
+
+# Link against OpenCV libraries
+target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCV_LIBS})
 
 # Locate MPI package (C and CXX components)
 find_package(MPI REQUIRED)
@@ -43,13 +61,15 @@ option(BUILD_TESTING "Enable testing" OFF)
 if(BUILD_TESTING)
     enable_testing()
 
+    # Add Google Test framework
     include(FetchContent)
     FetchContent_Declare(
-      googletest
-      URL https://github.com/google/googletest/archive/release-1.12.1.tar.gz
-      DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+        googletest
+        URL https://github.com/google/googletest/archive/release-1.12.1.tar.gz
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     )
     FetchContent_MakeAvailable(googletest)
+
 
     # Add the test executables
     add_executable(tensor_test tests/tensor_test.cpp)
