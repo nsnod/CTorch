@@ -1,5 +1,7 @@
 # CTorch
-:3
+<a name="top"></a>
+<div align="center">
+<img src = "./src/images/CTorch_Library.png">
 
 # Description
 Understanding PyTorch, a potent machine learning package, and investigating methods to speed up its calculations through parallelization are the main goals of this project. In order to maximize PyTorch's usefulness, we aim to locate performance bottlenecks in its operations and apply effective parallel processing strategies.
