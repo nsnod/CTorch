@@ -15,9 +15,10 @@ class Tensor {
         TODO prev_ NEEDS TO BE 3D TO CONTAIN LIST OF PREV RESULTS
         every time an oepration is done the previous reuslt should be stored in the correct index
     */
-    vector<Array<T>*>* prev_; // for storing the previous values of the tensor before an operation 
+    vector<Tensor<T>*>* prev_; // for storing the previous values of the tensor before an operation 
     vector<int> shape_;
     string operation_;  // contains the operation that was done to create this tensor
+    int num_prev; // number of previous tensors needed to create this tensor 
 
     Tensor() : shape_({}), data_(nullptr), grad_(nullptr), prev_(nullptr), operation_(""){}
 
@@ -28,27 +29,51 @@ class Tensor {
         shape_ = shape;
         data_ = new Array<T>(shape_);
         grad_ = new Array<T>(shape_);
-        prev_ = new vector<Array<T>*>(3, nullptr); // default allocate 3 // should contain the previous values used to create the tensor if any
+        prev_ = new vector<Tensor<T>*>(3, nullptr); // default allocate 3 // should contain the previous values used to create the tensor if any
         operation_ = "";
+        num_prev = 0;
     }
 
     Tensor(const Tensor& other) {
         shape_ = other.shape_;
         data_ = new Array<T>(*other.data_);
+        cout << "cpy " << other.grad_ << endl;
         grad_ = new Array<T>(*other.grad_);
-        prev_ = other.prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
+        cout << "cpy " << grad_ << endl;
+        prev_ = new vector<Tensor<T>*>(*other.prev_);     // TODO if we want to delete this itll get messay since the other tensor will delete it too
         operation_ = other.operation_;
+        num_prev = other.num_prev;
+    }
+
+    Tensor operator=(const Tensor& other) {
+        if (this != &other) {
+            cout << "cpy " << other.grad_ << endl;
+            delete data_;
+            delete grad_;
+            delete prev_;
+            shape_ = other.shape_;
+            data_ = new Array<T>(other.data_);
+            grad_ = new Array<T>(other.grad_);
+            prev_ = new vector<Tensor<T>*>(*other.prev_);     // TODO if we want to delete this itll get messay since the other tensor will delete it too
+            operation_ = other.operation_;
+            num_prev = other.num_prev;
+            cout << "finish" << endl;
+        }
+        return *this;
     }
 
     Tensor* operator=(const Tensor* other) {
         if (this != &other) {
+            cout << "cpy " << other->grad_ << endl;
             delete data_;
             delete grad_;
+            delete prev_;
             shape_ = other->shape_;
             data_ = new Array<T>(*other->data_);
             grad_ = new Array<T>(*other->grad_);
-            prev_ = other->prev_;    // TODO if we want to delete this itll get messay since the other tensor will delete it too
+            prev_ = new vector<Tensor<T>*>(*other->prev_);     // TODO if we want to delete this itll get messay since the other tensor will delete it too
             operation_ = other->operation_;
+            num_prev = other->num_prev;
         }
         return this;
     }
@@ -113,7 +138,6 @@ class Tensor {
         // check if the arrays are initialized properly
         if (data_ != nullptr && grad_ != nullptr) {
             data_->randomize(lower, upper);
-            grad_->randomize(lower, upper);
         } else {
             cout << "Error: Tensor arrays not properly initialized!" << endl;
             exit(EXIT_FAILURE);
@@ -142,17 +166,20 @@ class Tensor {
             grad_->print();
         }
         cout << endl;
-        if (prev_ == nullptr || prev_->at(0) == nullptr) {
-            cout << "Prev has not been set for this tensor yet." << endl;
-        } else {
-            for(int i = 0; i < prev_->size(); i++){
-                if ((*prev_)[i] == nullptr) {
-                    cout << "Prev has not been set for this tensor yet." << endl;
-                } else {
-                    prev_->at(i)->print();
-                }
-            }
-        }
+        // cout << "prev" << endl;
+        // if (prev_ == nullptr || prev_->at(0) == nullptr) {
+        //     cout << "Prev has not been set for this tensor yet." << endl;
+        // } else {
+        //     for(int i = 0; i < prev_->size(); i++){
+        //         if ((*prev_)[i] == nullptr) {
+        //             cout << "Prev has not been set for this tensor yet." << endl;
+        //         } else {
+        //             cout << "Previous tensor " << i << ":" << endl;
+        //             (*prev_)[i]->print_tensor();
+        //         }
+        //     }
+        // }
+        // cout << endl;
     }
 
 
@@ -351,7 +378,7 @@ class Tensor {
 
     // ONLY WORKS FOR 1D AND 2D CURRENTLY
     // in place until we expand for CNN 3ds
-    Tensor operator*(const Tensor& other) const {
+    Tensor operator*(Tensor& other) {
         Array<T>* data = this->data_;
         Array<T>* multData = other.data_;
         Array<T>* grad = this->grad_;
@@ -373,8 +400,8 @@ class Tensor {
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
 
-        (*prev_)[0] = this->data_;
-        (*prev_)[1] = other.data_;
+        (*prev_)[0] = this;
+        (*prev_)[1] = &other;
         vector<int> outputShape = {dataShape[0], multShape[1]};
         Array<T>* output = new Array<T>(outputShape);
 
@@ -415,11 +442,12 @@ class Tensor {
             MPI_COMM_WORLD
         );
 
-        Tensor<T> result;
-        result.shape_ = outputShape;
+        Tensor<T> result(outputShape);
         result.data_ = output;
-        result.grad_ = nullptr;
         result.operation_ = "matmul";
+        (*(result.prev_))[0] = this;
+        (*(result.prev_))[1] = &other;
+        result.num_prev = 2;
 
         return result;
     }
@@ -500,6 +528,7 @@ class Tensor {
         (*prev_)[0] = this->data_;
         (*prev_)[1] = other.data_;
         output->operation_ = "add";
+        output->num_prev = 2;
 
         for (int t = 0; t < numThreads; ++t) {
             int startIdx = t * chunkSize;
