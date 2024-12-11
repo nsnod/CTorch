@@ -5,8 +5,8 @@ Tensor<T>* mean(Tensor<T>* input){
     int new_size = input->shape_.size();
     Tensor<T>* output = new Tensor<T>({new_size});
     (*output->prev_)[0] = input;    // update previous
-    output->operation_ = "mean";
-    output->num_prev = 1;
+    // output->operation_ = "mean";
+    // output->num_prev = 1;
 
 
     // calculate mean depending on dimension
@@ -19,12 +19,13 @@ Tensor<T>* mean(Tensor<T>* input){
         (*output->data_)[0] = temp / n;
     } else {
         for(int i = 0; i < input->shape_[0]; i++){
-            input->data_[i].print();
+            // input->data_[i].print();
             for(int j = 0; j < input->shape_[1]; j++){
                 temp += input->data_->at({i, j});
+                cout << temp << endl;
             }
-            float n = static_cast<float>((input->shape_)[1]);
-            (*output->data_)[i] = temp / n;
+            float n = static_cast<float>(input->shape_[1]);
+            output->data_->at({i}) = temp / n;
             temp = 0.0f;
         }
     }
@@ -92,22 +93,22 @@ Tensor<T>* softmax(Tensor<T>* input){
     return t;
 }
 
-
 template <typename T = float>
-Tensor<T> loss_fn(Tensor<T>* predictions, Tensor<T>* targets) {
-    if (predictions->shape_ != targets->shape_) {
-        std::cout << "shape should be the same" << std::endl;
-        return
+Tensor<T> mse_loss(Tensor<T>* predictions, Tensor<T>* targets) {
+    // if (predictions->shape_ != targets->shape_) {
+    //     std::cout << "shape should be the same" << std::endl;
+    //     return nullptr;
         
+    // }
+
+    Tensor<float> diff = (*predictions) - (*targets);
+    // Square the differences
+    for(int i = 0; i < diff.shape_[0]; i++){
+        for(int j = 0; j < diff.shape_[1]; j++){
+            diff.data_->at({i, j}) = diff.data_->at({i, j}) * diff.data_->at({i, j});
+        }
     }
 
-    Tensor<T> diff = *predictions - *targets;
-
-
-    Tensor<T> squared_diff = diff * diff;
-
     // Calculate the mean of the squared differences
-    Tensor<T>* mse = mean(&squared_diff);
-
-    return *mse;
+    return *mean(&diff);
 }

@@ -49,9 +49,6 @@ include_directories(${MPI_INCLUDE_PATH})
 # Link directories (optional)
 link_directories("/opt/homebrew/lib")
 
-# Add executable for main project
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
-
 # Link MPI libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE MPI::MPI_C MPI::MPI_CXX)
 
