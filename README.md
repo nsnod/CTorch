@@ -2,6 +2,9 @@
 :3
 
 # Description
+Understanding PyTorch, a potent machine learning package, and investigating methods to speed up its calculations through parallelization are the main goals of this project. In order to maximize PyTorch's usefulness, we aim to locate performance bottlenecks in its operations and apply effective parallel processing strategies.
+
+Our work is based on CTorch, an open-source project that focuses on GPU acceleration by re-implementing parts of PyTorch in C++. We hope to significantly improve the speed and effectiveness of PyTorch's matrix multiplication, backpropagation, tensors, linear functions, etc. by utilizing the ideas and design of CTorch.
 
 # Documentation
 
