@@ -15,7 +15,7 @@ class Tensor {
         TODO prev_ NEEDS TO BE 3D TO CONTAIN LIST OF PREV RESULTS
         every time an oepration is done the previous reuslt should be stored in the correct index
     */
-    vector<Array<T>*>* prev_; // for storing the previous values of the tensor before an operation 
+    vector<Tensor<T>*>* prev_; // for storing the previous values of the tensor before an operation 
     vector<int> shape_;
     string operation_;  // contains the operation that was done to create this tensor
     int num_prev; // number of previous tensors needed to create this tensor 
@@ -29,7 +29,7 @@ class Tensor {
         shape_ = shape;
         data_ = new Array<T>(shape_);
         grad_ = new Array<T>(shape_);
-        prev_ = new vector<Array<T>*>(3, nullptr); // default allocate 3 // should contain the previous values used to create the tensor if any
+        prev_ = new vector<Tensor<T>*>(3, nullptr); // default allocate 3 // should contain the previous values used to create the tensor if any
         operation_ = "";
         num_prev = 0;
     }
@@ -117,7 +117,6 @@ class Tensor {
         // check if the arrays are initialized properly
         if (data_ != nullptr && grad_ != nullptr) {
             data_->randomize(lower, upper);
-            grad_->randomize(lower, upper);
         } else {
             cout << "Error: Tensor arrays not properly initialized!" << endl;
             exit(EXIT_FAILURE);
@@ -154,7 +153,8 @@ class Tensor {
                 if ((*prev_)[i] == nullptr) {
                     cout << "Prev has not been set for this tensor yet." << endl;
                 } else {
-                    prev_->at(i)->print();
+                    cout << "Previous tensor " << i << ":" << endl;
+                    (*prev_)[i]->print_tensor();
                 }
             }
         }
@@ -357,7 +357,7 @@ class Tensor {
 
     // ONLY WORKS FOR 1D AND 2D CURRENTLY
     // in place until we expand for CNN 3ds
-    Tensor operator*(const Tensor& other) const {
+    Tensor operator*(Tensor& other) {
         Array<T>* data = this->data_;
         Array<T>* multData = other.data_;
         Array<T>* grad = this->grad_;
@@ -379,8 +379,8 @@ class Tensor {
             MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
         }
 
-        (*prev_)[0] = this->data_;
-        (*prev_)[1] = other.data_;
+        (*prev_)[0] = this;
+        (*prev_)[1] = &other;
         vector<int> outputShape = {dataShape[0], multShape[1]};
         Array<T>* output = new Array<T>(outputShape);
 

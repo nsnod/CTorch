@@ -4,11 +4,10 @@ template <typename T = float>
 Tensor<T>* mean(Tensor<T>* input){
     int new_size = input->shape_.size();
     Tensor<T>* output = new Tensor<T>({new_size});
+    (*output->prev_)[0] = input;    // update previous
     output->operation_ = "mean";
     output->num_prev = 1;
 
-    // update previous 
-    (*output->prev_)[0] =  input->data_;
 
     // calculate mean depending on dimension
     float temp = 0.0f;
@@ -35,15 +34,18 @@ Tensor<T>* mean(Tensor<T>* input){
 
 template <typename T = float>
 Tensor<T> relu(Tensor<T>* input){
+    if (input->shape_.size() != 2) {
+        std::cout << "Must be a 2D tensor" << std::endl;
+        exit(EXIT_FAILURE);
+    }
     Tensor<T>* t = new Tensor<T>(input->shape_);
+    (*t->prev_)[0] = input;  // set previous
     t->operation_ = "relu";
     t->num_prev = 1;
-    
-    // update previous 
-    input->prev_->push_back(input->data_);
-    for(int i = 0; i < input->data_->size_; i++){
-        for(int j = 0; j < input->data_->size_; j++){
-            t->data_[i][j] = input->data_[i][j] > 0 ? input->data_[i][j] : 0;
+
+    for(int i = 0; i < input->shape_[0]; i++){
+        for(int j = 0; j < input->shape_[1]; j++){
+            t->data_->at({i, j}) = input->data_->at({i, j}) > 0 ? input->data_->at({i, j}) : 0;
         }
     }
     return *t;
@@ -59,6 +61,7 @@ Tensor<T> softmax(Tensor<T>* input){
     int batch_size = input->shape_[0];
     int num_classes = input->shape_[1];
     Tensor<T>* t = new Tensor<T>(input->shape_);
+    (*t->prev_)[0] = input;    
     t->operation_ = "softmax";
     t->num_prev = 1;
 
